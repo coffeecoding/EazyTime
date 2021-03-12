@@ -32,7 +32,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _hour = 12;
   int _minute = 34;
-  List<CustomText> _activities = <CustomText>[];
+  List<String> _activities = <String>["Working", "Calisthenics", "Eating"];
   TextEditingController _textController = TextEditingController();
   int _selectedActivityIndex = 0;
 
@@ -71,8 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       child: Text('Add'),
                                       onPressed: () {
                                         if (_textController.text.isNotEmpty) {
-                                          _activities.add(
-                                              CustomText(_textController.text));
+                                          _activities.add(_textController.text);
                                           setState(() {});
                                           _textController.text = "";
                                         }
@@ -133,10 +132,10 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         ElevatedButton(
             onPressed: () {
+              TimeOfDay time = TimeOfDay.now();
+              _hour = time.hour;
+              _minute = time.minute;
               setState(() {
-                TimeOfDay time = TimeOfDay.now();
-                _hour = time.hour;
-                _minute = time.minute;
               });
             },
             child: Text('Now'))
@@ -148,13 +147,14 @@ class _MyHomePageState extends State<MyHomePage> {
     return Stack(children: [
       ListWheelScrollView(
         key: UniqueKey(),
+        controller: FixedExtentScrollController(initialItem: _selectedActivityIndex),
         // Without this line it doesn't update!!!
         onSelectedItemChanged: (index) => updateSelectedActivity(index),
+        overAndUnderCenterOpacity: 0.75,
         diameterRatio: 1.5,
-        children: _activities,
+        children: _activities.map((e) => CustomText(e)).toList(),
         itemExtent: 48,
-        magnification: 1.2,
-        useMagnifier: true,
+        physics: FixedExtentScrollPhysics(),
       ),
       IgnorePointer(
         child: Container(
@@ -197,15 +197,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void updateSelectedActivity(int index) {
     _selectedActivityIndex = index;
-    //_activities[index].color = Colors.amber;
-    //setState(() {});
   }
 }
 
 class CustomText extends Text {
   CustomText(this.data, [this.color = Colors.white]) : super(data);
   final String data;
-  Color color;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
