@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'dart:math';
+import 'package:flutter_eazytime/partial_pie_chart.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'activity.dart';
 
 void main() {
   runApp(EazyTime());
@@ -34,17 +35,72 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _hour = 12;
   int _minute = 34;
-  List<String> _activities = <String>["Working", "Calisthenics", "Eating"];
   TextEditingController _textController = TextEditingController();
   int _selectedActivityIndex = 0;
+  List<String> _activities = <String>[
+    "Work",
+    "Sports",
+    "Eat",
+    "Sleep",
+    "Shower"
+  ];
+  List<Activity> _entries = <Activity>[
+    Activity('Sleep', Colors.blue, TimeOfDay(hour: 0, minute: 0),
+        TimeOfDay(hour: 7, minute: 0)),
+    Activity('Eat', Colors.amber, TimeOfDay(hour: 7, minute: 0),
+        TimeOfDay(hour: 8, minute: 0)),
+    Activity('Work', Colors.green, TimeOfDay(hour: 8, minute: 0),
+        TimeOfDay(hour: 10, minute: 0)),
+    Activity('Shower', Colors.lightBlue, TimeOfDay(hour: 10, minute: 0),
+        TimeOfDay(hour: 11, minute: 20)),
+    Activity('Eat', Colors.amber, TimeOfDay(hour: 11, minute: 20),
+        TimeOfDay(hour: 13, minute: 0)),
+    Activity('Work', Colors.green, TimeOfDay(hour: 13, minute: 0),
+        TimeOfDay(hour: 16, minute: 30)),
+  ];
+  static List<Color> _colors = <Color>[
+    Colors.purple,
+    Colors.pink,
+    Colors.red,
+    Colors.deepOrange,
+    Colors.orange,
+    Colors.amber,
+    Colors.green,
+    Colors.teal,
+    Colors.blue,
+    Colors.deepPurple
+  ];
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Column(
         children: [
-          Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-            Container(height: 100, child: buildTimeRow(context)),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Container(
+              height: 100,
+              child: buildTimeRow(context),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: TextButton(
+                  child: Text('Select'),
+                  onPressed: () async {
+                    TimeOfDay? picked = await showTimePicker(
+                        context: context, initialTime: TimeOfDay.now());
+                    _hour = picked!.hour;
+                    _minute = picked.minute;
+                    setState(() {});
+                  }),
+            ),
+            ElevatedButton(
+                onPressed: () {
+                  TimeOfDay time = TimeOfDay.now();
+                  _hour = time.hour;
+                  _minute = time.minute;
+                  setState(() {});
+                },
+                child: Text('Now'))
           ]),
           Center(
             child: LimitedBox(
@@ -56,97 +112,150 @@ class _MyHomePageState extends State<MyHomePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              TextButton(
+                  child: Text('Manage Activities'),
+                  onPressed: () => {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('Add Activity'),
+                                content:
+                                    TextFormField(controller: _textController),
+                                actions: <Widget>[
+                                  ElevatedButton(
+                                    child: Text('Add'),
+                                    onPressed: () {
+                                      if (_textController.text.isNotEmpty) {
+                                        _activities.add(_textController.text);
+                                        setState(() {});
+                                        _textController.text = "";
+                                      }
+                                      Navigator.pop(context);
+                                    },
+                                  )
+                                ],
+                              );
+                            })
+                      }),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: TextButton(
-                    child: Text('Manage Activities'),
-                    onPressed: () => {
-                          showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: Text('Add Activity'),
-                                  content: TextFormField(
-                                      controller: _textController),
-                                  actions: <Widget>[
-                                    ElevatedButton(
-                                      child: Text('Add'),
+                child: ElevatedButton(
+                    onPressed: () {
+                      // Update current activity
+                      int _entryCount = _entries.length;
+                      TimeOfDay _selTime = TimeOfDay(hour: _hour, minute: _minute);
+                      // Check if selected Time is within a different entry
+                      if (isWithinPreviousEntry(_selTime)) {
+                        for (Activity _entry in _entries) {
+                          if
+                        }
+                      }
+                      TimeOfDay _now = TimeOfDay.now();
+                      // If selected Time is in future alert User
+                      int _timeValueNow = _now.hour * 60 + _now.minute;
+                      int _selTimeValue = _selTime.hour * 60 + _selTime.minute;
+                      if (_timeValueNow < _selTimeValue) {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('Info'),
+                                content:
+                                    Text('Selected time lies in the future!'),
+                                actions: [
+                                  ElevatedButton(
                                       onPressed: () {
-                                        if (_textController.text.isNotEmpty) {
-                                          _activities.add(_textController.text);
-                                          setState(() {});
-                                          _textController.text = "";
-                                        }
-                                        Navigator.pop(context);
+                                        Navigator.of(context).pop();
                                       },
-                                    )
-                                  ],
-                                );
-                              })
-                        }),
+                                      child: Text('Oh okay'))
+                                ],
+                              );
+                            });
+                        return;
+                      }
+                      if (_entryCount > 0) {
+                        Activity _current = _entries[_entryCount - 1];
+                        if (_entryCount > 0) _current.end = _selTime;
+
+                        // add new activity
+                        int _lastEntryActivityIndex =
+                            _activities.indexOf(_current.name);
+                        if (_lastEntryActivityIndex == _selectedActivityIndex) {
+                          // update current
+                          _current.end = TimeOfDay.now();
+                          setState(() {});
+                          return;
+                        }
+                      }
+
+                      Activity _new = Activity(
+                          _activities[_selectedActivityIndex],
+                          _colors[_entryCount % _colors.length]);
+                      _new.start = _selTime;
+                      _entries.add(_new);
+                      setState(() {});
+                    },
+                    child: Text('Set Selected')),
               ),
               ElevatedButton(
                   onPressed: () {
-                    showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text('Info'),
-                            content: Text('List has ' +
-                                _activities.length.toString() +
-                                ' entries!'),
-                            actions: [
-                              TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: Text('OK'))
-                            ],
-                          );
-                        });
+                    showDebugInfo(context);
                   },
-                  child: Text('Switch')),
+                  child: Text('!'))
             ],
           ),
           Flexible(
               child: Container(
-                alignment: Alignment.center,
-                color: Colors.white,
+                  alignment: Alignment.center,
+                  color: Colors.white,
                   child: SizedBox(
-                    width: 350,
-                      height: 180,
-                      child: PartialPieChart.withSampleData()))),
+                      width: 500, height: 300, child: buildChart(context)))),
         ],
       ),
     );
   }
 
+  Widget? buildChart(BuildContext context) {
+    if (_entries.isEmpty) return null;
+    return PartialPieChart(getChartData(), getPassedFractionOfDay(),
+        animate: false);
+  }
+
+  double getPassedFractionOfDay() {
+    double totalFraction = 0.0;
+    _entries.forEach((element) {
+      totalFraction += element.fractionOfDay();
+    });
+    return totalFraction;
+  }
+
+  List<charts.Series<Activity, int>> getChartData() {
+    return [
+      new charts.Series<Activity, int>(
+        id: 'Activities',
+        domainFn: (Activity activity, _) => _entries.indexOf(activity),
+        measureFn: (Activity activity, _) => activity.fractionOfDay(),
+        data: _entries,
+        colorFn: (Activity activity, _) =>
+            charts.ColorUtil.fromDartColor(activity.color),
+        labelAccessorFn: (Activity activity, _) => activity.name,
+      )
+    ];
+  }
+
   Widget buildTimeRow(BuildContext context) {
-    return Row(
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        CustomText(_hour.toString().padLeft(2, '0')),
-        CustomText(':'),
-        CustomText(_minute.toString().padLeft(2, '0')),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-          child: TextButton(
-              child: Text('Select'),
-              onPressed: () async {
-                TimeOfDay? picked = await showTimePicker(
-                    context: context, initialTime: TimeOfDay.now());
-                _hour = picked!.hour;
-                _minute = picked.minute;
-                setState(() {});
-              }),
+        CustomText('Start Time', fontSize: 10.0, letterSpacing: 6.0),
+        Row(
+          children: [
+            CustomText(_hour.toString().padLeft(2, '0')),
+            CustomText(':'),
+            CustomText(_minute.toString().padLeft(2, '0')),
+          ],
         ),
-        ElevatedButton(
-            onPressed: () {
-              TimeOfDay time = TimeOfDay.now();
-              _hour = time.hour;
-              _minute = time.minute;
-              setState(() {});
-            },
-            child: Text('Now'))
       ],
     );
   }
@@ -207,76 +316,46 @@ class _MyHomePageState extends State<MyHomePage> {
   void updateSelectedActivity(int index) {
     _selectedActivityIndex = index;
   }
+
+  void showDebugInfo(BuildContext context) {
+    String info = "Debug Information: \n";
+    for (Activity _entry in _entries) info += _entry.toString();
+    info += "Passed: ${getPassedFractionOfDay()}";
+
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Info'),
+            content: Text(info),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('K'))
+            ],
+          );
+        });
+  }
 }
 
 class CustomText extends Text {
-  CustomText(this.data, [this.color = Colors.white]) : super(data);
+  CustomText(this.data, {this.color = Colors.white, this.fontSize = 40, this.letterSpacing = 0}) : super(data);
   final String data;
   final Color color;
+  final double fontSize;
+  final double letterSpacing;
 
   @override
   Widget build(BuildContext context) {
     return Text(data,
-        style: TextStyle(color: color, decoration: TextDecoration.none));
+        style: TextStyle(color: color, decoration: TextDecoration.none, fontSize: fontSize, letterSpacing: letterSpacing));
   }
 }
 
-class PartialPieChart extends StatelessWidget {
-  final List<charts.Series> seriesList;
-  final bool? animate;
-  static final List<Color> chartColors = <Color>[Colors.blue.shade400, Colors.red, Colors.orange, Colors.yellow];
-
-  PartialPieChart(this.seriesList, {this.animate});
-
-  /// Creates a [PieChart] with sample data and no transition.
-  factory PartialPieChart.withSampleData() {
-    return new PartialPieChart(
-      _createSampleData(),
-      // Disable animations for image tests.
-      animate: true,
-    );
+extension on TimeOfDay {
+  bool isAfter(TimeOfDay other) {
+    return false;
   }
-
-  @override
-  Widget build(BuildContext context) {
-    // Configure the pie to display the data across only 3/4 instead of the full
-    // revolution.
-    return new charts.PieChart(seriesList,
-        animate: animate,
-        defaultRenderer: new charts.ArcRendererConfig(
-            arcLength: 5 / 3 * pi,
-            arcRendererDecorators: [
-              new charts.ArcLabelDecorator(
-                  labelPosition: charts.ArcLabelPosition.outside)
-            ]));
-  }
-
-  /// Create one series with sample hard coded data.
-  static List<charts.Series<LinearSales, int>> _createSampleData() {
-    final data = [
-      new LinearSales(0, 100),
-      new LinearSales(1, 75),
-      new LinearSales(2, 25),
-      new LinearSales(3, 5),
-    ];
-
-    return [
-      new charts.Series<LinearSales, int>(
-        id: 'Sales',
-        domainFn: (LinearSales sales, _) => sales.year,
-        measureFn: (LinearSales sales, _) => sales.sales,
-        data: data,
-        colorFn: (LinearSales sales, i) => charts.ColorUtil.fromDartColor(chartColors[i]),
-        labelAccessorFn: (LinearSales row, _) => '${row.year}: ${row.sales}',
-      )
-    ];
-  }
-}
-
-/// Sample linear data type.
-class LinearSales {
-  final int year;
-  final int sales;
-
-  LinearSales(this.year, this.sales);
 }
