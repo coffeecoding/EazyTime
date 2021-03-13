@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'dart:math';
+import 'package:charts_flutter/flutter.dart' as charts;
 
 void main() {
   runApp(EazyTime());
@@ -106,7 +108,14 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Text('Switch')),
             ],
           ),
-          Expanded(child: Placeholder()),
+          Flexible(
+              child: Container(
+                alignment: Alignment.center,
+                color: Colors.white,
+                  child: SizedBox(
+                    width: 350,
+                      height: 180,
+                      child: PartialPieChart.withSampleData()))),
         ],
       ),
     );
@@ -135,8 +144,7 @@ class _MyHomePageState extends State<MyHomePage> {
               TimeOfDay time = TimeOfDay.now();
               _hour = time.hour;
               _minute = time.minute;
-              setState(() {
-              });
+              setState(() {});
             },
             child: Text('Now'))
       ],
@@ -147,7 +155,8 @@ class _MyHomePageState extends State<MyHomePage> {
     return Stack(children: [
       ListWheelScrollView(
         key: UniqueKey(),
-        controller: FixedExtentScrollController(initialItem: _selectedActivityIndex),
+        controller:
+            FixedExtentScrollController(initialItem: _selectedActivityIndex),
         // Without this line it doesn't update!!!
         onSelectedItemChanged: (index) => updateSelectedActivity(index),
         overAndUnderCenterOpacity: 0.75,
@@ -210,4 +219,64 @@ class CustomText extends Text {
     return Text(data,
         style: TextStyle(color: color, decoration: TextDecoration.none));
   }
+}
+
+class PartialPieChart extends StatelessWidget {
+  final List<charts.Series> seriesList;
+  final bool? animate;
+  static final List<Color> chartColors = <Color>[Colors.blue.shade400, Colors.red, Colors.orange, Colors.yellow];
+
+  PartialPieChart(this.seriesList, {this.animate});
+
+  /// Creates a [PieChart] with sample data and no transition.
+  factory PartialPieChart.withSampleData() {
+    return new PartialPieChart(
+      _createSampleData(),
+      // Disable animations for image tests.
+      animate: true,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Configure the pie to display the data across only 3/4 instead of the full
+    // revolution.
+    return new charts.PieChart(seriesList,
+        animate: animate,
+        defaultRenderer: new charts.ArcRendererConfig(
+            arcLength: 5 / 3 * pi,
+            arcRendererDecorators: [
+              new charts.ArcLabelDecorator(
+                  labelPosition: charts.ArcLabelPosition.outside)
+            ]));
+  }
+
+  /// Create one series with sample hard coded data.
+  static List<charts.Series<LinearSales, int>> _createSampleData() {
+    final data = [
+      new LinearSales(0, 100),
+      new LinearSales(1, 75),
+      new LinearSales(2, 25),
+      new LinearSales(3, 5),
+    ];
+
+    return [
+      new charts.Series<LinearSales, int>(
+        id: 'Sales',
+        domainFn: (LinearSales sales, _) => sales.year,
+        measureFn: (LinearSales sales, _) => sales.sales,
+        data: data,
+        colorFn: (LinearSales sales, i) => charts.ColorUtil.fromDartColor(chartColors[i]),
+        labelAccessorFn: (LinearSales row, _) => '${row.year}: ${row.sales}',
+      )
+    ];
+  }
+}
+
+/// Sample linear data type.
+class LinearSales {
+  final int year;
+  final int sales;
+
+  LinearSales(this.year, this.sales);
 }
