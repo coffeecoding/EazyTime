@@ -22,9 +22,44 @@ class Activity {
 /// For example, if you sleep 3x throughout a day, this class accumulates
 /// the durations of those, for example to portion = 12.5 hrs
 class ActivityPortion {
+  String name;
+  Color color;
+  double portion;
+  DateTime? dateTime = DateTime.now();
+
+  ActivityPortion(this.name, this.color, this.portion, [this.dateTime]);
+
+  /// Useful to create ActivityPortion for history, as name and color info will be there already
+  ActivityPortion.simple(this.portion, [String dateTime = '', this.name = '<simple>', this.color = Colors.blue]) {
+    if (dateTime == '')
+      this.dateTime = DateTime.now();
+    else this.dateTime = DateTime.parse(dateTime);
+  }
+}
+
+class ActivityHistory {
   final String name;
   final Color color;
-  double portion;
+  late List<ActivityPortion> portionSeries;
 
-  ActivityPortion(this.name, this.color, this.portion);
+  ActivityHistory(this.name, this.color) {
+    this.portionSeries = List<ActivityPortion>.empty(growable: true);
+  }
+
+  void add(ActivityPortion portion) {
+    if (portion.color != color)
+      throw 'ActivityPortion has different color than ActivityHistory!';
+    portionSeries.add(portion);
+  }
+
+  /// doesn't need name and color in portion, will just use the one of this history
+  void addSimple(ActivityPortion portion) {
+    portion.color = this.color;
+    portion.name = this.name;
+    portionSeries.add(portion);
+  }
+}
+
+String getDateDisplay(DateTime date) {
+  return '${date.year.toString().substring(2)}-${date.month}-${date.day}';
 }

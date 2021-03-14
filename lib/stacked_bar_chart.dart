@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:flutter_eazytime/styles.dart';
 
 class StackedBarChart extends StatelessWidget {
   final List<charts.Series<dynamic,String>> seriesList;
@@ -23,6 +24,24 @@ class StackedBarChart extends StatelessWidget {
       seriesList,
       animate: animate,
       barGroupingType: charts.BarGroupingType.stacked,
+      // domainAxis is x Axis
+      // MeasureAxis is y axis
+      primaryMeasureAxis: charts.NumericAxisSpec(
+        tickProviderSpec: charts.BasicNumericTickProviderSpec(
+            dataIsInWholeNumbers: true,
+            desiredMaxTickCount: 12,
+            desiredMinTickCount: 6,
+            desiredTickCount: 8)
+      ),
+      behaviors: [
+        new charts.SeriesLegend(
+            position: charts.BehaviorPosition.bottom,
+            entryTextStyle: charts.TextStyleSpec(
+              color: charts.MaterialPalette.black,
+              fontSize: 10,
+              fontFamily: 'Segoe UI'
+            ))
+      ],
     );
   }
 

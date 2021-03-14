@@ -3,6 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_eazytime/partial_pie_chart.dart';
 import 'package:flutter_eazytime/stacked_bar_chart.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:flutter_eazytime/styles.dart';
 import 'activity.dart';
 
 void main() {
@@ -14,8 +15,8 @@ class EazyTime extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-          primarySwatch: Colors.indigo, backgroundColor: Colors.white),
+      theme:
+          ThemeData(primarySwatch: Colors.blue, backgroundColor: Colors.white),
       home: MyHomePage(
         title: 'Flutter Demo Home Page',
         key: Key('Test'),
@@ -39,6 +40,39 @@ class _MyHomePageState extends State<MyHomePage> {
   TextEditingController _textController = TextEditingController();
   int _selectedActivityIndex = 0;
   PageController _pageController = PageController(initialPage: 1);
+  Map<String, ActivityHistory> _activityHistories = {};
+
+  void _initHistory() {
+    _activityHistories = {
+      'Sleep': ActivityHistory('Sleep', myBlue),
+      'Eat': ActivityHistory('Eat', myRed),
+      'Work': ActivityHistory('Work', myGreen),
+      'Shower': ActivityHistory('Shower', myAmber),
+      'Sports': ActivityHistory('Sports', myPurple),
+    };
+    _activityHistories['Sleep']!.addSimple(ActivityPortion.simple(10, '2021-03-10'));
+    _activityHistories['Sleep']!.addSimple(ActivityPortion.simple(13, '2021-03-11'));
+    _activityHistories['Sleep']!.addSimple(ActivityPortion.simple(12, '2021-03-12'));
+    _activityHistories['Sleep']!.addSimple(ActivityPortion.simple(9, '2021-03-13'));
+    _activityHistories['Eat']!.addSimple(ActivityPortion.simple(3, '2021-03-10'));
+    _activityHistories['Eat']!.addSimple(ActivityPortion.simple(2, '2021-03-11'));
+    _activityHistories['Eat']!.addSimple(ActivityPortion.simple(5, '2021-03-13'));
+    _activityHistories['Eat']!.addSimple(ActivityPortion.simple(3, '2021-03-12'));
+    _activityHistories['Work']!.addSimple(ActivityPortion.simple(10, '2021-03-10'));
+    _activityHistories['Work']!.addSimple(ActivityPortion.simple(6, '2021-03-11'));
+    _activityHistories['Work']!.addSimple(ActivityPortion.simple(7, '2021-03-12'));
+    _activityHistories['Work']!.addSimple(ActivityPortion.simple(2, '2021-03-13'));
+    _activityHistories['Shower']!.addSimple(ActivityPortion.simple(1, '2021-03-10'));
+    _activityHistories['Shower']!.addSimple(ActivityPortion.simple(1, '2021-03-11'));
+    _activityHistories['Shower']!
+        .addSimple(ActivityPortion.simple(0.5, '2021-03-12'));
+    _activityHistories['Shower']!
+        .addSimple(ActivityPortion.simple(1.5, '2021-03-13'));
+    _activityHistories['Sports']!.addSimple(ActivityPortion.simple(0, '2021-03-10'));
+    _activityHistories['Sports']!.addSimple(ActivityPortion.simple(3, '2021-03-11'));
+    _activityHistories['Sports']!.addSimple(ActivityPortion.simple(0, '2021-03-12'));
+    _activityHistories['Sports']!.addSimple(ActivityPortion.simple(2, '2021-03-13'));
+  }
 
   List<String> _activities = <String>[
     "Work",
@@ -48,19 +82,20 @@ class _MyHomePageState extends State<MyHomePage> {
     "Shower"
   ];
   List<Activity> _entries = <Activity>[
-    Activity('Sleep', Colors.blue.shade300, TimeOfDay(hour: 0, minute: 0),
+    Activity('Sleep', myBlue, TimeOfDay(hour: 0, minute: 0),
         TimeOfDay(hour: 7, minute: 0)),
-    Activity('Eat', Colors.red.shade300, TimeOfDay(hour: 7, minute: 0),
+    Activity('Eat', myRed, TimeOfDay(hour: 7, minute: 0),
         TimeOfDay(hour: 8, minute: 0)),
-    Activity('Work', Colors.green.shade300, TimeOfDay(hour: 8, minute: 0),
+    Activity('Work', myGreen, TimeOfDay(hour: 8, minute: 0),
         TimeOfDay(hour: 10, minute: 0)),
-    Activity('Shower', Colors.amber.shade300, TimeOfDay(hour: 10, minute: 0),
+    Activity('Shower', myAmber, TimeOfDay(hour: 10, minute: 0),
         TimeOfDay(hour: 11, minute: 20)),
-    Activity('Eat', Colors.red.shade300, TimeOfDay(hour: 11, minute: 20),
+    Activity('Eat', myRed, TimeOfDay(hour: 11, minute: 20),
         TimeOfDay(hour: 13, minute: 0)),
-    Activity('Work', Colors.green.shade300, TimeOfDay(hour: 13, minute: 0),
+    Activity('Work', myGreen, TimeOfDay(hour: 13, minute: 0),
         TimeOfDay(hour: 16, minute: 30)),
   ];
+
   static List<Color> _colors = <Color>[
     Colors.purple,
     Colors.pink,
@@ -74,6 +109,12 @@ class _MyHomePageState extends State<MyHomePage> {
     Colors.deepPurple
   ];
 
+  static Color myBlue = Colors.blue.shade300;
+  static Color myRed = Colors.red.shade300;
+  static Color myGreen = Colors.green.shade300;
+  static Color myAmber = Colors.amber.shade300;
+  static Color myPurple = Colors.purple.shade300;
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -82,8 +123,12 @@ class _MyHomePageState extends State<MyHomePage> {
         controller: _pageController,
         children: [
           Center(
-              child: SingleChildScrollView(
-                  child: CustomText('Yoo, this is history!'))),
+              child: Container(
+                color: Colors.white,
+                  child: AspectRatio(
+                      aspectRatio: 1.5,
+                      child: buildHistoryChart(context)))
+              ),
           Column(
             children: [
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -272,7 +317,7 @@ class _MyHomePageState extends State<MyHomePage> {
               )),
             ],
           ),
-          Center(child: CustomText('Yoo welcome, this alltime stats!')),
+          Center(child: Text('Yoo welcome, this alltime stats!', style: PrimaryTextStyle())),
         ],
       ),
     );
@@ -298,6 +343,25 @@ class _MyHomePageState extends State<MyHomePage> {
       totalFraction += element.fractionOfDay();
     });
     return totalFraction;
+  }
+
+  Widget? buildHistoryChart(BuildContext context) {
+    _initHistory();
+
+    if (_activityHistories.isEmpty) return null;
+    List<charts.Series<ActivityPortion, String>> data = [];
+
+    for (var _entry in _activityHistories.entries) {
+      data.add(new charts.Series<ActivityPortion, String>(
+          id: _entry.key,
+          domainFn: (ActivityPortion act, _) => getDateDisplay(act.dateTime!),
+          measureFn: (ActivityPortion act, _) => act.portion,
+          colorFn: (ActivityPortion act, _) =>
+              charts.ColorUtil.fromDartColor(_entry.value.color),
+          data: _entry.value.portionSeries));
+    }
+
+    return StackedBarChart(data, animate: true);
   }
 
   Widget? buildStackedChart(BuildContext context) {
@@ -347,14 +411,8 @@ class _MyHomePageState extends State<MyHomePage> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        CustomText('Start Time', fontSize: 10.0, letterSpacing: 6.0),
-        Row(
-          children: [
-            CustomText(_hour.toString().padLeft(2, '0')),
-            CustomText(':'),
-            CustomText(_minute.toString().padLeft(2, '0')),
-          ],
-        ),
+        Text('Start Time', style: SmallSpacedTextStyle()),
+        Text('$_hour:$_minute', style: PrimaryTextStyle())
       ],
     );
   }
@@ -369,7 +427,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onSelectedItemChanged: (index) => updateSelectedActivity(index),
         overAndUnderCenterOpacity: 0.75,
         diameterRatio: 1.5,
-        children: _activities.map((e) => CustomText(e)).toList(),
+        children: _activities.map((e) => Text(e, style: PrimaryTextStyle(),)).toList(),
         itemExtent: 48,
         physics: FixedExtentScrollPhysics(),
       ),
@@ -436,26 +494,6 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           );
         });
-  }
-}
-
-class CustomText extends Text {
-  CustomText(this.data,
-      {this.color = Colors.white, this.fontSize = 40, this.letterSpacing = 0})
-      : super(data);
-  final String data;
-  final Color color;
-  final double fontSize;
-  final double letterSpacing;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(data,
-        style: TextStyle(
-            color: color,
-            decoration: TextDecoration.none,
-            fontSize: fontSize,
-            letterSpacing: letterSpacing));
   }
 }
 
