@@ -1,16 +1,7 @@
-# flutter_eazytime
+# EazyTime (lib: flutter_eazytime)
 
-A new Flutter application.
+A flutter app to track your daily activites and get a personal overview of what portion of your time goes into which activity. The app is intended to motivate its users to rationalise their time usage by getting a visual impression of it. 
 
-## Getting Started
+## More Information
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+To be added ...
