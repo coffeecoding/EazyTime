@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class PrimaryTextStyle extends TextStyle {
-  PrimaryTextStyle() : super(
-    color: Colors.white,
+  PrimaryTextStyle([Color color = Colors.white]) : super(
+    color: color,
     decoration: TextDecoration.none,
     fontSize: 40
   );

@@ -33,7 +33,11 @@ class PartialPieChart extends StatelessWidget {
             arcRendererDecorators: [
               new charts.ArcLabelDecorator(
                   labelPosition: charts.ArcLabelPosition.auto,
-                  leaderLineStyleSpec: charts.ArcLabelLeaderLineStyleSpec(length: 10.0, thickness: 1, color: charts.ColorUtil.fromDartColor(Colors.grey))),
+                  leaderLineStyleSpec:
+                    charts.ArcLabelLeaderLineStyleSpec(
+                        length: 10.0,
+                        thickness: 1,
+                        color: charts.ColorUtil.fromDartColor(Colors.grey))),
             ]));
   }
 

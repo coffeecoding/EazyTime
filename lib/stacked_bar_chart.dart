@@ -5,8 +5,9 @@ import 'package:flutter_eazytime/styles.dart';
 class StackedBarChart extends StatelessWidget {
   final List<charts.Series<dynamic,String>> seriesList;
   final bool? animate;
+  final String? title;
 
-  StackedBarChart(this.seriesList, {this.animate});
+  StackedBarChart(this.seriesList, {this.animate, this.title});
 
   /// Creates a stacked [BarChart] with sample data and no transition.
   factory StackedBarChart.withSampleData() {
@@ -36,11 +37,18 @@ class StackedBarChart extends StatelessWidget {
       behaviors: [
         new charts.SeriesLegend(
             position: charts.BehaviorPosition.bottom,
+            cellPadding: EdgeInsets.all(5),
+            desiredMaxColumns: 4,
             entryTextStyle: charts.TextStyleSpec(
               color: charts.MaterialPalette.black,
               fontSize: 10,
               fontFamily: 'Segoe UI'
-            ))
+            )),
+        new charts.ChartTitle(
+            title,
+            titleDirection: charts.ChartTitleDirection.horizontal,
+            behaviorPosition: charts.BehaviorPosition.top
+        )
       ],
     );
   }
