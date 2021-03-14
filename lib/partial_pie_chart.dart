@@ -27,12 +27,13 @@ class PartialPieChart extends StatelessWidget {
     return new charts.PieChart(seriesList,
         animate: animate,
         defaultRenderer: new charts.ArcRendererConfig(
-            arcLength: partiality * pi,
-            arcWidth: 70,
+            arcLength: partiality * 2 * pi,
+            arcWidth: 72,
+            strokeWidthPx: 0,
             arcRendererDecorators: [
               new charts.ArcLabelDecorator(
-                  labelPosition: charts.ArcLabelPosition.outside,
-                  leaderLineStyleSpec: charts.ArcLabelLeaderLineStyleSpec(length: 3.0, thickness: 1, color: charts.ColorUtil.fromDartColor(Colors.grey))),
+                  labelPosition: charts.ArcLabelPosition.auto,
+                  leaderLineStyleSpec: charts.ArcLabelLeaderLineStyleSpec(length: 10.0, thickness: 1, color: charts.ColorUtil.fromDartColor(Colors.grey))),
             ]));
   }
 

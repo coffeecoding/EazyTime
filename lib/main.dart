@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_eazytime/partial_pie_chart.dart';
+import 'package:flutter_eazytime/stacked_bar_chart.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'activity.dart';
 
@@ -14,7 +15,7 @@ class EazyTime extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-          primarySwatch: Colors.purple, backgroundColor: Colors.white),
+          primarySwatch: Colors.indigo, backgroundColor: Colors.white),
       home: MyHomePage(
         title: 'Flutter Demo Home Page',
         key: Key('Test'),
@@ -45,17 +46,17 @@ class _MyHomePageState extends State<MyHomePage> {
     "Shower"
   ];
   List<Activity> _entries = <Activity>[
-    Activity('Sleep', Colors.blue, TimeOfDay(hour: 0, minute: 0),
-        TimeOfDay(hour: 7, minute: 0)),
-    Activity('Eat', Colors.amber, TimeOfDay(hour: 7, minute: 0),
+    Activity('Sleep', Colors.blue.shade300, TimeOfDay(hour: 0, minute: 0),
+       TimeOfDay(hour: 7, minute: 0)),
+    Activity('Eat', Colors.red.shade300, TimeOfDay(hour: 7, minute: 0),
         TimeOfDay(hour: 8, minute: 0)),
-    Activity('Work', Colors.green, TimeOfDay(hour: 8, minute: 0),
+    Activity('Work', Colors.green.shade300, TimeOfDay(hour: 8, minute: 0),
         TimeOfDay(hour: 10, minute: 0)),
-    Activity('Shower', Colors.lightBlue, TimeOfDay(hour: 10, minute: 0),
+    Activity('Shower', Colors.amber.shade300, TimeOfDay(hour: 10, minute: 0),
         TimeOfDay(hour: 11, minute: 20)),
-    Activity('Eat', Colors.amber, TimeOfDay(hour: 11, minute: 20),
+    Activity('Eat', Colors.red.shade300, TimeOfDay(hour: 11, minute: 20),
         TimeOfDay(hour: 13, minute: 0)),
-    Activity('Work', Colors.green, TimeOfDay(hour: 13, minute: 0),
+    Activity('Work', Colors.green.shade300, TimeOfDay(hour: 13, minute: 0),
         TimeOfDay(hour: 16, minute: 30)),
   ];
   static List<Color> _colors = <Color>[
@@ -143,19 +144,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: ElevatedButton(
                     onPressed: () {
                       // Update current activity
-                      int _entryCount = _entries.length;
-                      TimeOfDay _selTime = TimeOfDay(hour: _hour, minute: _minute);
-                      // Check if selected Time is within a different entry
-                      if (isWithinPreviousEntry(_selTime)) {
-                        for (Activity _entry in _entries) {
-                          if
-                        }
-                      }
+                      TimeOfDay _selTime =
+                          TimeOfDay(hour: _hour, minute: _minute);
                       TimeOfDay _now = TimeOfDay.now();
+                      String _selectedActivity =
+                          _activities[_selectedActivityIndex];
                       // If selected Time is in future alert User
-                      int _timeValueNow = _now.hour * 60 + _now.minute;
-                      int _selTimeValue = _selTime.hour * 60 + _selTime.minute;
-                      if (_timeValueNow < _selTimeValue) {
+                      if (_now.isBefore(_selTime)) {
                         showDialog(
                             context: context,
                             builder: (BuildContext context) {
@@ -174,26 +169,33 @@ class _MyHomePageState extends State<MyHomePage> {
                             });
                         return;
                       }
-                      if (_entryCount > 0) {
-                        Activity _current = _entries[_entryCount - 1];
-                        if (_entryCount > 0) _current.end = _selTime;
+                      // Check if selected Time is within a different entry
+                      int _idx = isWithinPreviousEntry(_selTime);
+                      if (_idx >= 0) {
+                        // adjust entries accordingly, i.e. split the one its in
+                        _entries[_idx].end = _selTime;
+                        // remove all later entries
+                        for (int i = _idx + 1; i < _entries.length; i++)
+                          _entries.removeAt(i);
+                      }
+                      if (_entries.isNotEmpty) {
+                        Activity _current = _entries.last;
 
-                        // add new activity
+                        // update current activity
                         int _lastEntryActivityIndex =
                             _activities.indexOf(_current.name);
                         if (_lastEntryActivityIndex == _selectedActivityIndex) {
-                          // update current
                           _current.end = TimeOfDay.now();
-                          setState(() {});
                           return;
                         }
                       }
-
                       Activity _new = Activity(
                           _activities[_selectedActivityIndex],
-                          _colors[_entryCount % _colors.length]);
+                          _colors[_entries.length % _colors.length]);
                       _new.start = _selTime;
+                      _new.end = _now;
                       _entries.add(_new);
+
                       setState(() {});
                     },
                     child: Text('Set Selected')),
@@ -206,20 +208,51 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           ),
           Flexible(
-              child: Container(
-                  alignment: Alignment.center,
-                  color: Colors.white,
-                  child: SizedBox(
-                      width: 500, height: 300, child: buildChart(context)))),
+              child: DefaultTabController(
+                length: 2,
+                child: Scaffold(
+                  appBar: AppBar(
+                    backgroundColor: Colors.black,
+                    title: TabBar(
+                      tabs: [
+                        Tab(icon: Icon(Icons.album)),
+                        Tab(icon: Icon(Icons.bar_chart)),
+                    ]
+                    ),
+                  ),
+                  body: TabBarView(
+                    children: [
+                      Container(
+                          alignment: Alignment.center,
+                          color: Colors.white,
+                          child: SizedBox(
+                              width: 500, height: 300, child: buildPieChart(context))),
+                      Container(
+                          alignment: Alignment.center,
+                          color: Colors.white,
+                          child: SizedBox(
+                              width: 200, height: 300, child: buildStackedChart(context))),
+                    ],
+                  ),
+                ),
+              )),
         ],
       ),
     );
   }
 
-  Widget? buildChart(BuildContext context) {
+  Widget? buildPieChart(BuildContext context) {
     if (_entries.isEmpty) return null;
     return PartialPieChart(getChartData(), getPassedFractionOfDay(),
         animate: false);
+  }
+
+  int isWithinPreviousEntry(TimeOfDay time) {
+    if (_entries.isEmpty) return -1;
+    for (int i = 0; i < _entries.length; i++) {
+      if (_entries[i].end!.isAfter(time)) return i;
+    }
+    return -1;
   }
 
   double getPassedFractionOfDay() {
@@ -228,6 +261,35 @@ class _MyHomePageState extends State<MyHomePage> {
       totalFraction += element.fractionOfDay();
     });
     return totalFraction;
+  }
+
+  Widget? buildStackedChart(BuildContext context) {
+    if (_entries.isEmpty) return null;
+    var _activityTotalsMap = {};
+    for (Activity _entry in _entries) {
+      if (_activityTotalsMap.containsKey(_entry.name))
+        _activityTotalsMap[_entry.name].portion += (_entry.fractionOfDay() * 24);
+      else _activityTotalsMap[_entry.name] =
+          ActivityPortion(_entry.name, _entry.color, _entry.fractionOfDay() * 24);
+    }
+
+    List<charts.Series<ActivityPortion,String>> data = [];
+
+    for (String _key in _activityTotalsMap.keys) {
+      data.add(
+        new charts.Series<ActivityPortion,String>(
+          id: _key,
+          domainFn: (__, _) => 'Today',
+          measureFn: (ActivityPortion act, _) => act.portion,
+          data: [_activityTotalsMap[_key]],
+          colorFn: (ActivityPortion act, _) =>
+            charts.ColorUtil.fromDartColor(act.color),
+          labelAccessorFn: (ActivityPortion act, _) => act.name,
+          displayName: _key,
+        )
+      );
+    }
+    return StackedBarChart(data, animate: true);
   }
 
   List<charts.Series<Activity, int>> getChartData() {
@@ -341,7 +403,9 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class CustomText extends Text {
-  CustomText(this.data, {this.color = Colors.white, this.fontSize = 40, this.letterSpacing = 0}) : super(data);
+  CustomText(this.data,
+      {this.color = Colors.white, this.fontSize = 40, this.letterSpacing = 0})
+      : super(data);
   final String data;
   final Color color;
   final double fontSize;
@@ -350,12 +414,30 @@ class CustomText extends Text {
   @override
   Widget build(BuildContext context) {
     return Text(data,
-        style: TextStyle(color: color, decoration: TextDecoration.none, fontSize: fontSize, letterSpacing: letterSpacing));
+        style: TextStyle(
+            color: color,
+            decoration: TextDecoration.none,
+            fontSize: fontSize,
+            letterSpacing: letterSpacing));
   }
 }
 
 extension on TimeOfDay {
   bool isAfter(TimeOfDay other) {
-    return false;
+    int _timeValueNow = this.hour * 60 + this.minute;
+    int _timeValueOther = other.hour * 60 + other.minute;
+    return _timeValueNow > _timeValueOther;
+  }
+
+  bool isBefore(TimeOfDay other) {
+    int _timeValueNow = this.hour * 60 + this.minute;
+    int _timeValueOther = other.hour * 60 + other.minute;
+    return _timeValueNow < _timeValueOther;
+  }
+
+  bool isSimultaneousTo(TimeOfDay other) {
+    int _timeValueNow = this.hour * 60 + this.minute;
+    int _timeValueOther = other.hour * 60 + other.minute;
+    return _timeValueNow == _timeValueOther;
   }
 }
