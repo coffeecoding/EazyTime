@@ -261,10 +261,10 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           Scaffold(
             appBar: AppBar(
-              leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: () {
-                _pageController.animateToPage(1, duration: Duration(milliseconds: 500), curve: Curves.easeOut); 
-              }),
-              title: Text('History', style: NormalTextStyle())),
+                leading: BackButton(onPressed: () {
+                  _pageController.animateToPage(1, duration: Duration(milliseconds: 500), curve: Curves.easeOut);
+                }),
+                title: Text('All time statistics', style: NormalTextStyle())),
             body: Container(
                 color: Colors.white,
                 alignment: Alignment.center,
