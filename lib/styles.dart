@@ -51,6 +51,16 @@ class SmallSpacedTextStyle extends TextStyle {
   );
 }
 
+class LegendTextStyle extends TextStyle {
+  LegendTextStyle([Color color = Colors.white]) : super(
+      color: color,
+      fontSize: 10.0,
+      decoration: TextDecoration.none,
+      fontFamily: 'Roboto',
+      fontWeight: FontWeight.w300
+  );
+}
+
 class ColorSpec {
   static Color myBlue = Colors.blue.shade300;
   static Color myRed = Colors.red.shade300;

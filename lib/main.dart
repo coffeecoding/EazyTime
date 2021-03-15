@@ -65,16 +65,33 @@ class _MyHomePageState extends State<MyHomePage> {
         scrollDirection: Axis.horizontal,
         controller: _pageController,
         children: [
-          Container(
-              alignment: Alignment.center,
-              color: Colors.white,
-              child: SingleChildScrollView(
-                  controller: _historyChartScroller,
-                  scrollDirection: Axis.horizontal,
-                  child: SizedBox(
-                      width: 500,
-                      height: 300,
-                      child: buildHistoryChart(context)))),
+          Scaffold(
+            appBar: AppBar(title: Text('History', style: NormalTextStyle()), actions: [
+              IconButton(icon: Icon(Icons.arrow_forward), onPressed: () {
+                _pageController.animateToPage(1, duration:
+                Duration(milliseconds: 500), curve: Curves.easeOut); })
+            ]),
+            body: Container(
+                alignment: Alignment.center,
+                color: Colors.white,
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          controller: _historyChartScroller,
+                          scrollDirection: Axis.horizontal,
+                          child: SizedBox(
+                              width: 500,
+                              height: 300,
+                              child: buildHistoryChart(context))),
+                      ),
+                      Wrap(
+                        children: buildHistoryLegend()
+                      )
+                    ]
+                )),
+          ),
           Column(
             children: [
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -242,20 +259,18 @@ class _MyHomePageState extends State<MyHomePage> {
               )),
             ],
           ),
-          Container(
-              color: Colors.white,
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Container(
-                    height: 100,
-                    alignment: Alignment.center,
-                    child: Text('All Time Stats', style: PrimaryTextStyle(Colors.black))
-                  ),
-                  Expanded(child: SizedBox(height: 300, child: buildAllTimeChart(context)!)),
-                ],
-              )),
+          Scaffold(
+            appBar: AppBar(
+              leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: () {
+                _pageController.animateToPage(1, duration: Duration(milliseconds: 500), curve: Curves.easeOut); 
+              }),
+              title: Text('History', style: NormalTextStyle())),
+            body: Container(
+                color: Colors.white,
+                alignment: Alignment.center,
+                  child: SizedBox(height: 300, child: buildAllTimeChart(context)!),
+                ),
+          ),
         ],
       ),
     );
@@ -263,6 +278,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
   onNavigateHere(dynamic val) {
     setState(() { });
+  }
+
+  List<Widget> buildHistoryLegend() {
+   return _activities.map((a) => Container(
+    height: 30, width: 80, child: Row(
+     children: [
+       Container(height: 15, width: 15, margin: EdgeInsets.symmetric(horizontal: 4.0), color: Colors.blue),
+       Text(a, style: LegendTextStyle(Colors.black))
+     ],
+   ),
+   )).toList();
   }
 
   Widget? buildAllTimeChart(BuildContext context) {
@@ -333,7 +359,7 @@ class _MyHomePageState extends State<MyHomePage> {
         data: _entry.value.portionSeries));
     }
 
-    return StackedBarChart(data, animate: true, title: 'History');
+    return StackedBarChart(data, animate: true);
   }
 
   Widget? buildStackedChart(BuildContext context) {
@@ -363,7 +389,7 @@ class _MyHomePageState extends State<MyHomePage> {
         displayName: _key,
       ));
     }
-    return StackedBarChart(data, animate: true, title: '');
+    return StackedBarChart(data, animate: true);
   }
 
   List<charts.Series<Activity, int>> getChartData() {
