@@ -24,6 +24,7 @@ class _ActivityManagerState extends State<ActivityManager> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        appBar: AppBar(title: Text('Manage Activities', style: NormalTextStyle())),
         body: Container(
           color: Colors.white,
           child: Column(
@@ -32,11 +33,20 @@ class _ActivityManagerState extends State<ActivityManager> {
               Flexible(
                 child: ListView.builder(
                   padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 4.0),
-                  itemBuilder: (_, int i) => Dismissible(
-                    key: UniqueKey(),
-                    onDismissed: (dir) => (activities.removeAt(i)),
-                    child: Text(activities[i], style: NormalTextStyle(Colors.black))),
-                  itemCount: activities.length
+                  itemBuilder: (_, int i) => i.isEven
+                    ? Dismissible(
+                        key: UniqueKey(),
+                        background: Flexible(
+                          child: Container(color: ColorSpec.myRed)
+                        ),
+                        onDismissed: (dir) => (activities.removeAt(i)),
+                        child: Container(
+                          alignment: Alignment.centerLeft,
+                          height: 40,
+                          padding: EdgeInsets.only(left: 8.0),
+                          child: Text(activities[i ~/ 2], style: NormalTextStyle(Colors.black))))
+                    : Divider(),
+                  itemCount: activities.length * 2
                 ),
               ),
               Divider(height: 1.0),
