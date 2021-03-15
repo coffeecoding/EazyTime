@@ -6,6 +6,7 @@ import 'package:flutter_eazytime/stacked_bar_chart.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter_eazytime/styles.dart';
 import 'activity.dart';
+import 'activity_manager.dart';
 import 'sample_data.dart' as mysamples;
 
 void main() {
@@ -33,11 +34,12 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _MyHomePageState createState() => _MyHomePageState.withSampleData();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
   _MyHomePageState();
+
   _MyHomePageState.withSampleData() {
     _activityHistories = mysamples.SampleData.getSampleHistory();
     _activities = mysamples.SampleData.getSampleActivities();
@@ -50,11 +52,11 @@ class _MyHomePageState extends State<MyHomePage> {
   int _selectedActivityIndex = 0;
   PageController _pageController = PageController(initialPage: 1);
   Map<String, ActivityHistory> _activityHistories = {};
-  ScrollController _historyChartScroller = ScrollController(keepScrollOffset: true);
+  ScrollController _historyChartScroller =
+      ScrollController(keepScrollOffset: true);
 
   List<String> _activities = [];
   List<Activity> _entries = [];
-
 
   @override
   Widget build(BuildContext context) {
@@ -64,13 +66,13 @@ class _MyHomePageState extends State<MyHomePage> {
         controller: _pageController,
         children: [
           Container(
-            alignment: Alignment.center,
-            color: Colors.white,
+              alignment: Alignment.center,
+              color: Colors.white,
               child: SingleChildScrollView(
-                controller: _historyChartScroller,
+                  controller: _historyChartScroller,
                   scrollDirection: Axis.horizontal,
                   child: SizedBox(
-                    width: 500,
+                      width: 500,
                       height: 300,
                       child: buildHistoryChart(context)))),
           Column(
@@ -87,8 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       onPressed: () async {
                         TimeOfDay? picked = await showTimePicker(
                             context: context, initialTime: TimeOfDay.now());
-                        if (picked == null)
-                          return;
+                        if (picked == null) return;
                         _hour = picked.hour;
                         _minute = picked.minute;
                         setState(() {});
@@ -137,29 +138,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   TextButton(
                       child: Text('Manage Activities'),
                       onPressed: () => {
-                            showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: Text('Add Activity'),
-                                    content: TextFormField(
-                                        controller: _textController),
-                                    actions: <Widget>[
-                                      ElevatedButton(
-                                        child: Text('Add'),
-                                        onPressed: () {
-                                          if (_textController.text.isNotEmpty) {
-                                            _activities
-                                                .add(_textController.text);
-                                            setState(() {});
-                                            _textController.text = "";
-                                          }
-                                          Navigator.pop(context);
-                                        },
-                                      )
-                                    ],
-                                  );
-                                })
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        ActivityManager(_activities))).then(onNavigateHere)
                           }),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -214,7 +197,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           }
                           Activity _new = Activity(
                               _activities[_selectedActivityIndex],
-                              ColorSpec.colorCircle[_entries.length % ColorSpec.colorCircle.length]);
+                              ColorSpec.colorCircle[_entries.length %
+                                  ColorSpec.colorCircle.length]);
                           _new.start = _selTime;
                           _new.end = _now;
                           _entries.add(_new);
@@ -250,7 +234,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: SizedBox(
                               width: 200,
                               height: 300,
-                              child: Center(child: buildStackedChart(context)))),
+                              child:
+                                  Center(child: buildStackedChart(context)))),
                     ],
                   ),
                 ),
@@ -258,21 +243,22 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           ),
           Container(
-            color: Colors.white,
+              color: Colors.white,
               alignment: Alignment.center,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Text('All Time Stats', style: PrimaryTextStyle(Colors.black)),
-                  SizedBox(
-                    height: 300,
-                      child: buildAllTimeChart(context)!),
+                  SizedBox(height: 300, child: buildAllTimeChart(context)!),
                 ],
-              )
-          ),
+              )),
         ],
       ),
     );
+  }
+
+  onNavigateHere(dynamic val) {
+    setState(() { });
   }
 
   Widget? buildAllTimeChart(BuildContext context) {
@@ -280,7 +266,7 @@ class _MyHomePageState extends State<MyHomePage> {
       return Text('No data found.', style: SecondaryTextStyle(Colors.grey));
 
     List<ActivityPortion> _data = [];
-    
+
     for (var _entry in _activityHistories.entries) {
       double _total = 0.0;
       for (var _actPortion in _entry.value.portionSeries) {
@@ -288,19 +274,19 @@ class _MyHomePageState extends State<MyHomePage> {
       }
       _data.add(new ActivityPortion(_entry.key, _entry.value.color, _total));
     }
-    
+
     var _series = [
       charts.Series<ActivityPortion, int>(
         id: 'TotalActivity',
         domainFn: (ActivityPortion act, _) => _activities.indexOf(act.name),
         measureFn: (ActivityPortion act, _) => act.portion,
         data: _data,
-        colorFn: (ActivityPortion act, _) 
-          => charts.ColorUtil.fromDartColor(act.color),
+        colorFn: (ActivityPortion act, _) =>
+            charts.ColorUtil.fromDartColor(act.color),
         labelAccessorFn: (ActivityPortion act, _) => act.name,
       )
     ];
-    
+
     return new SimplePieChart(_series);
   }
 
@@ -329,7 +315,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget? buildHistoryChart(BuildContext context) {
     if (_activityHistories.isEmpty)
-      return Text('No history data found.', style: SecondaryTextStyle(Colors.grey));
+      return Text('No history data found.',
+          style: SecondaryTextStyle(Colors.grey));
     List<charts.Series<ActivityPortion, String>> data = [];
 
     for (var _entry in _activityHistories.entries) {
@@ -409,7 +396,12 @@ class _MyHomePageState extends State<MyHomePage> {
         onSelectedItemChanged: (index) => updateSelectedActivity(index),
         overAndUnderCenterOpacity: 0.75,
         diameterRatio: 1.5,
-        children: _activities.map((e) => Text(e, style: PrimaryTextStyle(),)).toList(),
+        children: _activities
+            .map((e) => Text(
+                  e,
+                  style: PrimaryTextStyle(),
+                ))
+            .toList(),
         itemExtent: 48,
         physics: FixedExtentScrollPhysics(),
       ),

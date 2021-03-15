@@ -4,7 +4,17 @@ class PrimaryTextStyle extends TextStyle {
   PrimaryTextStyle([Color color = Colors.white]) : super(
     color: color,
     decoration: TextDecoration.none,
-    fontSize: 40
+    fontSize: 40,
+  );
+}
+
+class NormalTextStyle extends TextStyle {
+  NormalTextStyle([Color color = Colors.white]) : super(
+    color: color,
+    decoration: TextDecoration.none,
+    fontSize: 20,
+    fontFamily: 'Roboto',
+    fontWeight: FontWeight.w300
   );
 }
 
