@@ -6,6 +6,7 @@ import 'package:flutter_eazytime/stacked_bar_chart.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter_eazytime/styles.dart';
 import 'activity.dart';
+import 'sample_data.dart' as mysamples;
 
 void main() {
   runApp(EazyTime());
@@ -36,6 +37,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  _MyHomePageState();
+  _MyHomePageState.withSampleData() {
+    _activityHistories = mysamples.SampleData.getSampleHistory();
+    _activities = mysamples.SampleData.getSampleActivities();
+    _entries = mysamples.SampleData.getSampleEntries();
+  }
+
   int _hour = 12;
   int _minute = 34;
   TextEditingController _textController = TextEditingController();
@@ -44,94 +52,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Map<String, ActivityHistory> _activityHistories = {};
   ScrollController _historyChartScroller = ScrollController(keepScrollOffset: true);
 
-  void _initHistory() {
-    _activityHistories = {
-      'Sleep': ActivityHistory('Sleep', myBlue),
-      'Eat': ActivityHistory('Eat', myRed),
-      'Work': ActivityHistory('Work', myGreen),
-      'Shower': ActivityHistory('Shower', myAmber),
-      'Sports': ActivityHistory('Sports', myPurple),
-      'Groceries': ActivityHistory('Groceries', myTeal),
-    };
-    _activityHistories['Sleep']!.addSimple(ActivityPortion.simple(10, '2021-03-10'));
-    _activityHistories['Sleep']!.addSimple(ActivityPortion.simple(13, '2021-03-11'));
-    _activityHistories['Sleep']!.addSimple(ActivityPortion.simple(12, '2021-03-12'));
-    _activityHistories['Sleep']!.addSimple(ActivityPortion.simple(9, '2021-03-13'));
-    _activityHistories['Sleep']!.addSimple(ActivityPortion.simple(10, '2021-03-14'));
-    _activityHistories['Sleep']!.addSimple(ActivityPortion.simple(9.5, '2021-03-15'));
-    _activityHistories['Eat']!.addSimple(ActivityPortion.simple(3, '2021-03-10'));
-    _activityHistories['Eat']!.addSimple(ActivityPortion.simple(2, '2021-03-11'));
-    _activityHistories['Eat']!.addSimple(ActivityPortion.simple(2.2, '2021-03-12'));
-    _activityHistories['Eat']!.addSimple(ActivityPortion.simple(3, '2021-03-13'));
-    _activityHistories['Eat']!.addSimple(ActivityPortion.simple(1.5, '2021-03-14'));
-    _activityHistories['Eat']!.addSimple(ActivityPortion.simple(2.4, '2021-03-15'));
-    _activityHistories['Work']!.addSimple(ActivityPortion.simple(5, '2021-03-10'));
-    _activityHistories['Work']!.addSimple(ActivityPortion.simple(6, '2021-03-11'));
-    _activityHistories['Work']!.addSimple(ActivityPortion.simple(7, '2021-03-12'));
-    _activityHistories['Work']!.addSimple(ActivityPortion.simple(2, '2021-03-13'));
-    _activityHistories['Work']!.addSimple(ActivityPortion.simple(8, '2021-03-14'));
-    _activityHistories['Work']!.addSimple(ActivityPortion.simple(5, '2021-03-15'));
-    _activityHistories['Shower']!.addSimple(ActivityPortion.simple(1, '2021-03-10'));
-    _activityHistories['Shower']!.addSimple(ActivityPortion.simple(1, '2021-03-11'));
-    _activityHistories['Shower']!.addSimple(ActivityPortion.simple(0.5, '2021-03-12'));
-    _activityHistories['Shower']!.addSimple(ActivityPortion.simple(1.2, '2021-03-13'));
-    _activityHistories['Shower']!.addSimple(ActivityPortion.simple(0, '2021-03-14'));
-    _activityHistories['Shower']!.addSimple(ActivityPortion.simple(1.5, '2021-03-15'));
-    _activityHistories['Sports']!.addSimple(ActivityPortion.simple(0, '2021-03-10'));
-    _activityHistories['Sports']!.addSimple(ActivityPortion.simple(1.5, '2021-03-11'));
-    _activityHistories['Sports']!.addSimple(ActivityPortion.simple(0, '2021-03-12'));
-    _activityHistories['Sports']!.addSimple(ActivityPortion.simple(2, '2021-03-13'));
-    _activityHistories['Sports']!.addSimple(ActivityPortion.simple(0, '2021-03-14'));
-    _activityHistories['Sports']!.addSimple(ActivityPortion.simple(1.8, '2021-03-15'));
-    _activityHistories['Groceries']!.addSimple(ActivityPortion.simple(3, '2021-03-10'));
-    _activityHistories['Groceries']!.addSimple(ActivityPortion.simple(0, '2021-03-11'));
-    _activityHistories['Groceries']!.addSimple(ActivityPortion.simple(0, '2021-03-12'));
-    _activityHistories['Groceries']!.addSimple(ActivityPortion.simple(1.2, '2021-03-13'));
-    _activityHistories['Groceries']!.addSimple(ActivityPortion.simple(0, '2021-03-14'));
-    _activityHistories['Groceries']!.addSimple(ActivityPortion.simple(0.5, '2021-03-15'));
-  }
+  List<String> _activities = [];
+  List<Activity> _entries = [];
 
-  List<String> _activities = <String>[
-    "Work",
-    "Sports",
-    "Eat",
-    "Sleep",
-    "Shower"
-  ];
-  List<Activity> _entries = <Activity>[
-    Activity('Sleep', myBlue, TimeOfDay(hour: 0, minute: 0),
-        TimeOfDay(hour: 7, minute: 0)),
-    Activity('Eat', myRed, TimeOfDay(hour: 7, minute: 0),
-        TimeOfDay(hour: 8, minute: 0)),
-    Activity('Work', myGreen, TimeOfDay(hour: 8, minute: 0),
-        TimeOfDay(hour: 10, minute: 0)),
-    Activity('Shower', myAmber, TimeOfDay(hour: 10, minute: 0),
-        TimeOfDay(hour: 11, minute: 20)),
-    Activity('Eat', myRed, TimeOfDay(hour: 11, minute: 20),
-        TimeOfDay(hour: 13, minute: 0)),
-    Activity('Work', myGreen, TimeOfDay(hour: 13, minute: 0),
-        TimeOfDay(hour: 16, minute: 30)),
-  ];
-
-  static List<Color> _colors = <Color>[
-    Colors.purple,
-    Colors.pink,
-    Colors.red,
-    Colors.deepOrange,
-    Colors.orange,
-    Colors.amber,
-    Colors.green,
-    Colors.teal,
-    Colors.blue,
-    Colors.deepPurple
-  ];
-
-  static Color myBlue = Colors.blue.shade300;
-  static Color myRed = Colors.red.shade300;
-  static Color myGreen = Colors.green.shade300;
-  static Color myAmber = Colors.amber.shade300;
-  static Color myPurple = Colors.purple.shade300;
-  static Color myTeal = Colors.teal.shade300;
 
   @override
   Widget build(BuildContext context) {
@@ -291,7 +214,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           }
                           Activity _new = Activity(
                               _activities[_selectedActivityIndex],
-                              _colors[_entries.length % _colors.length]);
+                              ColorSpec.colorCircle[_entries.length % ColorSpec.colorCircle.length]);
                           _new.start = _selTime;
                           _new.end = _now;
                           _entries.add(_new);
@@ -300,11 +223,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         },
                         child: Text('Set Selected')),
                   ),
-                  /*ElevatedButton(
-                      onPressed: () {
-                        showDebugInfo(context);
-                      },
-                      child: Text('!'))*/
                 ],
               ),
               Flexible(
@@ -322,18 +240,17 @@ class _MyHomePageState extends State<MyHomePage> {
                     children: [
                       Container(
                           alignment: Alignment.center,
-                          color: Colors.white,
                           child: SizedBox(
                               width: 500,
                               height: 300,
-                              child: buildPieChart(context))),
+                              child: Center(child: buildPieChart(context)))),
                       Container(
                           alignment: Alignment.center,
                           color: Colors.white,
                           child: SizedBox(
                               width: 200,
                               height: 300,
-                              child: buildStackedChart(context))),
+                              child: Center(child: buildStackedChart(context)))),
                     ],
                   ),
                 ),
@@ -360,7 +277,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget? buildAllTimeChart(BuildContext context) {
     if (_activityHistories.isEmpty)
-      return Text('No data found.', style: PrimaryTextStyle());
+      return Text('No data found.', style: SecondaryTextStyle(Colors.grey));
 
     List<ActivityPortion> _data = [];
     
@@ -389,7 +306,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget? buildPieChart(BuildContext context) {
     if (_entries.isEmpty)
-      return Text('No entries found', style: PrimaryTextStyle());
+      return Text('No entries found', style: SecondaryTextStyle(Colors.grey));
     return PartialPieChart(getChartData(), getPassedFractionOfDay(),
         animate: false);
   }
@@ -411,10 +328,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget? buildHistoryChart(BuildContext context) {
-    _initHistory();
-
     if (_activityHistories.isEmpty)
-      return Text('No history data found.', style: PrimaryTextStyle());
+      return Text('No history data found.', style: SecondaryTextStyle(Colors.grey));
     List<charts.Series<ActivityPortion, String>> data = [];
 
     for (var _entry in _activityHistories.entries) {
@@ -431,7 +346,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget? buildStackedChart(BuildContext context) {
-    if (_entries.isEmpty) return null;
+    if (_entries.isEmpty)
+      return Text('No data found', style: SecondaryTextStyle(Colors.grey));
     var _activityTotalsMap = {};
     for (Activity _entry in _entries) {
       if (_activityTotalsMap.containsKey(_entry.name))
