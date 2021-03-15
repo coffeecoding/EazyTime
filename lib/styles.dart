@@ -5,6 +5,8 @@ class PrimaryTextStyle extends TextStyle {
     color: color,
     decoration: TextDecoration.none,
     fontSize: 40,
+    fontFamily: 'Roboto',
+    fontWeight: FontWeight.w300
   );
 }
 
@@ -18,11 +20,23 @@ class NormalTextStyle extends TextStyle {
   );
 }
 
+class ButtonTextStyle extends TextStyle {
+  ButtonTextStyle([Color color = Colors.white]) : super(
+      color: color,
+      decoration: TextDecoration.none,
+      fontSize: 14,
+      fontFamily: 'Roboto',
+      fontWeight: FontWeight.w300
+  );
+}
+
 class SecondaryTextStyle extends TextStyle {
   SecondaryTextStyle([Color color = Colors.white]) : super(
       color: color,
       decoration: TextDecoration.none,
-      fontSize: 10
+      fontSize: 10,
+      fontFamily: 'Roboto',
+      fontWeight: FontWeight.w300
   );
 }
 
@@ -31,7 +45,9 @@ class SmallSpacedTextStyle extends TextStyle {
     color: Colors.white,
     fontSize: 10.0,
     decoration: TextDecoration.none,
-    letterSpacing: 6.0
+    letterSpacing: 7.0,
+    fontFamily: 'Roboto',
+    fontWeight: FontWeight.w300
   );
 }
 

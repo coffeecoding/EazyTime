@@ -68,9 +68,8 @@ class _ActivityManagerState extends State<ActivityManager> {
                             onSubmitted: _isComposing ? _handleAdd : null,
                             controller: _textController,
                             maxLines: 1,
-                            maxLength: 20,
                             focusNode: _textFocusNode,
-                            decoration: InputDecoration.collapsed(hintText: 'Hi')),
+                            decoration: InputDecoration.collapsed(hintText: 'Enter activity')),
                         ),
                       ),
                       Material(

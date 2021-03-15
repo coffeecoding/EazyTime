@@ -85,7 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10.0),
                   child: TextButton(
-                      child: Text('Select'),
+                      child: Text('Select', style: ButtonTextStyle()),
                       onPressed: () async {
                         TimeOfDay? picked = await showTimePicker(
                             context: context, initialTime: TimeOfDay.now());
@@ -102,7 +102,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       _minute = time.minute;
                       setState(() {});
                     },
-                    child: Text('Now'))
+                    child: Text('Now', style: ButtonTextStyle()))
               ]),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -136,7 +136,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   TextButton(
-                      child: Text('Manage Activities'),
+                      child: Text('Manage Activities', style: ButtonTextStyle()),
                       onPressed: () => {
                             Navigator.push(
                                 context,
@@ -168,7 +168,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           onPressed: () {
                                             Navigator.of(context).pop();
                                           },
-                                          child: Text('Oh okay'))
+                                          child: Text('Oh okay', style: ButtonTextStyle()))
                                     ],
                                   );
                                 });
@@ -205,7 +205,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
                           setState(() {});
                         },
-                        child: Text('Set Selected')),
+                        child: Text('Set Selected', style: ButtonTextStyle())),
                   ),
                 ],
               ),
@@ -246,10 +246,14 @@ class _MyHomePageState extends State<MyHomePage> {
               color: Colors.white,
               alignment: Alignment.center,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Text('All Time Stats', style: PrimaryTextStyle(Colors.black)),
-                  SizedBox(height: 300, child: buildAllTimeChart(context)!),
+                  Container(
+                    height: 100,
+                    alignment: Alignment.center,
+                    child: Text('All Time Stats', style: PrimaryTextStyle(Colors.black))
+                  ),
+                  Expanded(child: SizedBox(height: 300, child: buildAllTimeChart(context)!)),
                 ],
               )),
         ],
@@ -321,12 +325,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
     for (var _entry in _activityHistories.entries) {
       data.add(new charts.Series<ActivityPortion, String>(
-          id: _entry.key,
-          domainFn: (ActivityPortion act, _) => getDateDisplay(act.dateTime!),
-          measureFn: (ActivityPortion act, _) => act.portion,
-          colorFn: (ActivityPortion act, _) =>
-              charts.ColorUtil.fromDartColor(_entry.value.color),
-          data: _entry.value.portionSeries));
+        id: _entry.key,
+        domainFn: (ActivityPortion act, _) => getDateDisplay(act.dateTime!),
+        measureFn: (ActivityPortion act, _) => act.portion,
+        colorFn: (ActivityPortion act, _) =>
+            charts.ColorUtil.fromDartColor(_entry.value.color),
+        data: _entry.value.portionSeries));
     }
 
     return StackedBarChart(data, animate: true, title: 'History');
@@ -381,7 +385,7 @@ class _MyHomePageState extends State<MyHomePage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text('Start Time', style: SmallSpacedTextStyle()),
-        Text('$_hour:$_minute', style: PrimaryTextStyle())
+        Text('$_hour : $_minute', style: PrimaryTextStyle())
       ],
     );
   }
