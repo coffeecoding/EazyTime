@@ -34,7 +34,7 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  _MyHomePageState createState() => _MyHomePageState.withSampleData();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
@@ -46,8 +46,8 @@ class _MyHomePageState extends State<MyHomePage> {
     _entries = mysamples.SampleData.getSampleEntries();
   }
 
-  int _hour = 12;
-  int _minute = 34;
+  int _hour = 0;
+  int _minute = 0;
   TextEditingController _textController = TextEditingController();
   int _selectedActivityIndex = 0;
   PageController _pageController = PageController(initialPage: 1);
@@ -136,23 +136,20 @@ class _MyHomePageState extends State<MyHomePage> {
                         children: [
                           Container(
                             height: 80,
+                            padding: EdgeInsets.symmetric(horizontal: 8.0),
                             child: buildStartTime(context),
                           ),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 10.0),
-                            child: TextButton(
-                                child: Text('Set', style: ButtonTextStyle()),
-                                onPressed: () async {
-                                  TimeOfDay? picked = await showTimePicker(
-                                      context: context,
-                                      initialTime: TimeOfDay.now());
-                                  if (picked == null) return;
-                                  _hour = picked.hour;
-                                  _minute = picked.minute;
-                                  setState(() {});
-                                }),
-                          ),
+                          TextButton(
+                              child: Text('Set', style: ButtonTextStyle()),
+                              onPressed: () async {
+                                TimeOfDay? picked = await showTimePicker(
+                                    context: context,
+                                    initialTime: TimeOfDay.now());
+                                if (picked == null) return;
+                                _hour = picked.hour;
+                                _minute = picked.minute;
+                                setState(() {});
+                              }),
                           ElevatedButton(
                               onPressed: () {
                                 TimeOfDay time = TimeOfDay.now();
@@ -160,7 +157,18 @@ class _MyHomePageState extends State<MyHomePage> {
                                 _minute = time.minute;
                                 setState(() {});
                               },
-                              child: Text('Now', style: ButtonTextStyle()))
+                              child: Text('Now', style: ButtonTextStyle())),
+                          ElevatedButton(
+                              onPressed: () {
+                                showDebugInfo(context);
+                              },
+                              child: Text('DBG')),
+                          ElevatedButton(
+                              onPressed: () {
+                                _entries.clear();
+                                setState(() { });
+                              },
+                              child: Text('CLR'))
                         ]),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -195,7 +203,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           TextButton(
-                              child: Text('Manage Activities',
+                              child: Text('My Activities',
                                   style: ButtonTextStyle()),
                               onPressed: () => {
                                     Navigator.push(
@@ -218,14 +226,20 @@ class _MyHomePageState extends State<MyHomePage> {
                                   String _selectedActivity =
                                       _activities[_selectedActivityIndex];
                                   // If selected Time is in future alert User
-                                  if (_now.isBefore(_selTime)) {
+                                  String _info = '';
+                                  if (_now.isBefore(_selTime))
+                                    _info = 'Start time lies in the future!';
+                                  else if (_entries.isEmpty && _selTime.isAfter(TimeOfDay(hour: 0, minute: 0)))
+                                    _info = 'First entry needs to start at 00:00!';
+                                  else if (_entries.isNotEmpty && _selTime.isAfter(_entries.last.end!))
+                                    _info = 'Start time can\'t be after the end of the last entry!';
+                                  if (_info.isNotEmpty) {
                                     showDialog(
                                         context: context,
                                         builder: (BuildContext context) {
                                           return AlertDialog(
                                             title: Text('Info'),
-                                            content: Text(
-                                                'Selected time lies in the future!'),
+                                            content: Text(_info),
                                             actions: [
                                               ElevatedButton(
                                                   onPressed: () {
@@ -241,22 +255,39 @@ class _MyHomePageState extends State<MyHomePage> {
                                   // Check if selected Time is within a different entry
                                   int _idx = isWithinPreviousEntry(_selTime);
                                   if (_idx >= 0) {
-                                    // adjust entries accordingly, i.e. split the one its in
-                                    _entries[_idx].end = _selTime;
-                                    // remove all later entries
-                                    for (int i = _idx + 1;
-                                        i < _entries.length;
-                                        i++) _entries.removeAt(i);
-                                  }
-                                  if (_entries.isNotEmpty) {
-                                    Activity _current = _entries.last;
+                                    Activity _prevEntry = _entries[_idx];
 
+                                    if (_selTime.isSimultaneousTo(_prevEntry.start!)) {
+                                      // and remove all entries
+                                      _entries.clear();
+                                    }
+                                    else {
+                                      // and remove all later entries
+                                      int _entryCount = _entries.length;
+                                      for (int i = _idx + 1;
+                                      i < _entryCount;
+                                      i++) _entries.removeAt(_idx +1);
+                                      // If the previous entry is the same as the selected one ...
+                                      if (_prevEntry.name == _activities[_selectedActivityIndex]) {
+                                        // ... adjust its end time to now
+                                        _prevEntry.end = _now;
+                                        setState(() {});
+                                        return;
+                                      } else {
+                                        // Otherwise, set its end time to the selected time
+                                        _prevEntry.end = _selTime;
+                                      }
+                                    }
+                                  }
+                                  Activity _current = _entries.last;
+                                  if (_selTime.isSimultaneousTo(_now)) {
                                     // update current activity
                                     int _lastEntryActivityIndex =
                                         _activities.indexOf(_current.name);
                                     if (_lastEntryActivityIndex ==
                                         _selectedActivityIndex) {
                                       _current.end = TimeOfDay.now();
+                                      setState(() {});
                                       return;
                                     }
                                   }
@@ -267,7 +298,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                   _new.start = _selTime;
                                   _new.end = _now;
                                   _entries.add(_new);
-
                                   setState(() {});
                                 },
                                 child:
@@ -361,7 +391,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   int isWithinPreviousEntry(TimeOfDay time) {
     if (_entries.isEmpty) return -1;
-    for (int i = 0; i < _entries.length; i++) {
+    for (int i = 0; i < _entries.length-1; i++) {
       if (_entries[i].end!.isAfter(time)) return i;
     }
     return -1;
@@ -443,7 +473,7 @@ class _MyHomePageState extends State<MyHomePage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text('Start Time', style: SmallSpacedTextStyle()),
-        Text('$_hour : $_minute', style: PrimaryTextStyle())
+        Text('${_hour.toString().padLeft(2, '0')} : ${_minute.toString().padLeft(2, '0')}', style: PrimaryTextStyle())
       ],
     );
   }
