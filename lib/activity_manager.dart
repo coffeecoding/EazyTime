@@ -33,8 +33,7 @@ class _ActivityManagerState extends State<ActivityManager> {
               Flexible(
                 child: ListView.builder(
                   padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 4.0),
-                  itemBuilder: (_, int i) => i.isEven
-                    ? Dismissible(
+                  itemBuilder: (_, int i) => Dismissible(
                         key: UniqueKey(),
                         background: Flexible(
                           child: Container(color: ColorSpec.myRed)
@@ -42,11 +41,11 @@ class _ActivityManagerState extends State<ActivityManager> {
                         onDismissed: (dir) => (activities.removeAt(i)),
                         child: Container(
                           alignment: Alignment.centerLeft,
-                          height: 40,
+                          decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey.shade200, width: 1.0))),
+                          height: 50,
                           padding: EdgeInsets.only(left: 8.0),
-                          child: Text(activities[i ~/ 2], style: NormalTextStyle(Colors.black))))
-                    : Divider(),
-                  itemCount: activities.length * 2
+                          child: Text(activities[i], style: NormalTextStyle(Colors.black)))),
+                  itemCount: activities.length
                 ),
               ),
               Divider(height: 1.0),

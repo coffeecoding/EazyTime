@@ -66,11 +66,17 @@ class _MyHomePageState extends State<MyHomePage> {
         controller: _pageController,
         children: [
           Scaffold(
-            appBar: AppBar(title: Text('History', style: NormalTextStyle()), actions: [
-              IconButton(icon: Icon(Icons.arrow_forward), onPressed: () {
-                _pageController.animateToPage(1, duration:
-                Duration(milliseconds: 500), curve: Curves.easeOut); })
-            ]),
+            appBar: AppBar(
+                title: Text('History', style: NormalTextStyle()),
+                actions: [
+                  IconButton(
+                      icon: Icon(Icons.arrow_forward),
+                      onPressed: () {
+                        _pageController.animateToPage(1,
+                            duration: Duration(milliseconds: 500),
+                            curve: Curves.easeOut);
+                      })
+                ]),
             body: Container(
                 alignment: Alignment.center,
                 color: Colors.white,
@@ -79,153 +85,18 @@ class _MyHomePageState extends State<MyHomePage> {
                     children: [
                       Expanded(
                         child: SingleChildScrollView(
-                          controller: _historyChartScroller,
-                          scrollDirection: Axis.horizontal,
-                          child: SizedBox(
-                              width: 500,
-                              height: 300,
-                              child: buildHistoryChart(context))),
+                            controller: _historyChartScroller,
+                            scrollDirection: Axis.horizontal,
+                            child: SizedBox(
+                                width: 500,
+                                height: 300,
+                                child: buildHistoryChart(context))),
                       ),
-                      Wrap(
-                        children: buildHistoryLegend()
-                      )
-                    ]
-                )),
+                      Wrap(children: buildHistoryLegend())
+                    ])),
           ),
           Column(
             children: [
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Container(
-                  height: 100,
-                  child: buildTimeRow(context),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: TextButton(
-                      child: Text('Select', style: ButtonTextStyle()),
-                      onPressed: () async {
-                        TimeOfDay? picked = await showTimePicker(
-                            context: context, initialTime: TimeOfDay.now());
-                        if (picked == null) return;
-                        _hour = picked.hour;
-                        _minute = picked.minute;
-                        setState(() {});
-                      }),
-                ),
-                ElevatedButton(
-                    onPressed: () {
-                      TimeOfDay time = TimeOfDay.now();
-                      _hour = time.hour;
-                      _minute = time.minute;
-                      setState(() {});
-                    },
-                    child: Text('Now', style: ButtonTextStyle()))
-              ]),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Center(
-                      child: TextButton(
-                          onPressed: () {
-                            _pageController.animateToPage(0,
-                                duration: Duration(milliseconds: 500),
-                                curve: Curves.ease);
-                          },
-                          child: Icon(Icons.arrow_back_ios,
-                              color: Colors.white24))),
-                  LimitedBox(
-                    maxHeight: 200,
-                    maxWidth: 200,
-                    child: buildActivityList(context),
-                  ),
-                  Center(
-                      child: TextButton(
-                          onPressed: () {
-                            _pageController.animateToPage(2,
-                                duration: Duration(milliseconds: 500),
-                                curve: Curves.ease);
-                          },
-                          child: Icon(Icons.arrow_forward_ios,
-                              color: Colors.white24))),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                      child: Text('Manage Activities', style: ButtonTextStyle()),
-                      onPressed: () => {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        ActivityManager(_activities))).then(onNavigateHere)
-                          }),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: ElevatedButton(
-                        onPressed: () {
-                          // Update current activity
-                          TimeOfDay _selTime =
-                              TimeOfDay(hour: _hour, minute: _minute);
-                          TimeOfDay _now = TimeOfDay.now();
-                          String _selectedActivity =
-                              _activities[_selectedActivityIndex];
-                          // If selected Time is in future alert User
-                          if (_now.isBefore(_selTime)) {
-                            showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: Text('Info'),
-                                    content: Text(
-                                        'Selected time lies in the future!'),
-                                    actions: [
-                                      ElevatedButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: Text('Oh okay', style: ButtonTextStyle()))
-                                    ],
-                                  );
-                                });
-                            return;
-                          }
-                          // Check if selected Time is within a different entry
-                          int _idx = isWithinPreviousEntry(_selTime);
-                          if (_idx >= 0) {
-                            // adjust entries accordingly, i.e. split the one its in
-                            _entries[_idx].end = _selTime;
-                            // remove all later entries
-                            for (int i = _idx + 1; i < _entries.length; i++)
-                              _entries.removeAt(i);
-                          }
-                          if (_entries.isNotEmpty) {
-                            Activity _current = _entries.last;
-
-                            // update current activity
-                            int _lastEntryActivityIndex =
-                                _activities.indexOf(_current.name);
-                            if (_lastEntryActivityIndex ==
-                                _selectedActivityIndex) {
-                              _current.end = TimeOfDay.now();
-                              return;
-                            }
-                          }
-                          Activity _new = Activity(
-                              _activities[_selectedActivityIndex],
-                              ColorSpec.colorCircle[_entries.length %
-                                  ColorSpec.colorCircle.length]);
-                          _new.start = _selTime;
-                          _new.end = _now;
-                          _entries.add(_new);
-
-                          setState(() {});
-                        },
-                        child: Text('Set Selected', style: ButtonTextStyle())),
-                  ),
-                ],
-              ),
               Flexible(
                   child: DefaultTabController(
                 length: 2,
@@ -257,19 +128,172 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
               )),
+              Flexible(
+                child: Column(
+                  children: [
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            height: 80,
+                            child: buildStartTime(context),
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 10.0),
+                            child: TextButton(
+                                child: Text('Set', style: ButtonTextStyle()),
+                                onPressed: () async {
+                                  TimeOfDay? picked = await showTimePicker(
+                                      context: context,
+                                      initialTime: TimeOfDay.now());
+                                  if (picked == null) return;
+                                  _hour = picked.hour;
+                                  _minute = picked.minute;
+                                  setState(() {});
+                                }),
+                          ),
+                          ElevatedButton(
+                              onPressed: () {
+                                TimeOfDay time = TimeOfDay.now();
+                                _hour = time.hour;
+                                _minute = time.minute;
+                                setState(() {});
+                              },
+                              child: Text('Now', style: ButtonTextStyle()))
+                        ]),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Center(
+                            child: TextButton(
+                                onPressed: () {
+                                  _pageController.animateToPage(0,
+                                      duration: Duration(milliseconds: 500),
+                                      curve: Curves.ease);
+                                },
+                                child: Icon(Icons.arrow_back_ios,
+                                    color: Colors.white24))),
+                        LimitedBox(
+                          maxHeight: 200,
+                          maxWidth: 200,
+                          child: buildActivityList(context),
+                        ),
+                        Center(
+                            child: TextButton(
+                                onPressed: () {
+                                  _pageController.animateToPage(2,
+                                      duration: Duration(milliseconds: 500),
+                                      curve: Curves.ease);
+                                },
+                                child: Icon(Icons.arrow_forward_ios,
+                                    color: Colors.white24))),
+                      ],
+                    ),
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextButton(
+                              child: Text('Manage Activities',
+                                  style: ButtonTextStyle()),
+                              onPressed: () => {
+                                    Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    ActivityManager(
+                                                        _activities)))
+                                        .then(onNavigateHere)
+                                  }),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 10.0),
+                            child: ElevatedButton(
+                                onPressed: () {
+                                  // Update current activity
+                                  TimeOfDay _selTime =
+                                      TimeOfDay(hour: _hour, minute: _minute);
+                                  TimeOfDay _now = TimeOfDay.now();
+                                  String _selectedActivity =
+                                      _activities[_selectedActivityIndex];
+                                  // If selected Time is in future alert User
+                                  if (_now.isBefore(_selTime)) {
+                                    showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: Text('Info'),
+                                            content: Text(
+                                                'Selected time lies in the future!'),
+                                            actions: [
+                                              ElevatedButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: Text('Oh okay',
+                                                      style: ButtonTextStyle()))
+                                            ],
+                                          );
+                                        });
+                                    return;
+                                  }
+                                  // Check if selected Time is within a different entry
+                                  int _idx = isWithinPreviousEntry(_selTime);
+                                  if (_idx >= 0) {
+                                    // adjust entries accordingly, i.e. split the one its in
+                                    _entries[_idx].end = _selTime;
+                                    // remove all later entries
+                                    for (int i = _idx + 1;
+                                        i < _entries.length;
+                                        i++) _entries.removeAt(i);
+                                  }
+                                  if (_entries.isNotEmpty) {
+                                    Activity _current = _entries.last;
+
+                                    // update current activity
+                                    int _lastEntryActivityIndex =
+                                        _activities.indexOf(_current.name);
+                                    if (_lastEntryActivityIndex ==
+                                        _selectedActivityIndex) {
+                                      _current.end = TimeOfDay.now();
+                                      return;
+                                    }
+                                  }
+                                  Activity _new = Activity(
+                                      _activities[_selectedActivityIndex],
+                                      ColorSpec.colorCircle[_entries.length %
+                                          ColorSpec.colorCircle.length]);
+                                  _new.start = _selTime;
+                                  _new.end = _now;
+                                  _entries.add(_new);
+
+                                  setState(() {});
+                                },
+                                child:
+                                    Text('Switch', style: ButtonTextStyle())),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
           Scaffold(
             appBar: AppBar(
                 leading: BackButton(onPressed: () {
-                  _pageController.animateToPage(1, duration: Duration(milliseconds: 500), curve: Curves.easeOut);
+                  _pageController.animateToPage(1,
+                      duration: Duration(milliseconds: 500),
+                      curve: Curves.easeOut);
                 }),
                 title: Text('All time statistics', style: NormalTextStyle())),
             body: Container(
-                color: Colors.white,
-                alignment: Alignment.center,
-                  child: SizedBox(height: 300, child: buildAllTimeChart(context)!),
-                ),
+              color: Colors.white,
+              alignment: Alignment.center,
+              child: SizedBox(height: 300, child: buildAllTimeChart(context)!),
+            ),
           ),
         ],
       ),
@@ -277,18 +301,26 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   onNavigateHere(dynamic val) {
-    setState(() { });
+    setState(() {});
   }
 
   List<Widget> buildHistoryLegend() {
-   return _activities.map((a) => Container(
-    height: 30, width: 80, child: Row(
-     children: [
-       Container(height: 15, width: 15, margin: EdgeInsets.symmetric(horizontal: 4.0), color: Colors.blue),
-       Text(a, style: LegendTextStyle(Colors.black))
-     ],
-   ),
-   )).toList();
+    return _activities
+        .map((a) => Container(
+              height: 30,
+              width: 80,
+              child: Row(
+                children: [
+                  Container(
+                      height: 15,
+                      width: 15,
+                      margin: EdgeInsets.symmetric(horizontal: 4.0),
+                      color: Colors.blue),
+                  Text(a, style: LegendTextStyle(Colors.black))
+                ],
+              ),
+            ))
+        .toList();
   }
 
   Widget? buildAllTimeChart(BuildContext context) {
@@ -351,12 +383,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
     for (var _entry in _activityHistories.entries) {
       data.add(new charts.Series<ActivityPortion, String>(
-        id: _entry.key,
-        domainFn: (ActivityPortion act, _) => getDateDisplay(act.dateTime!),
-        measureFn: (ActivityPortion act, _) => act.portion,
-        colorFn: (ActivityPortion act, _) =>
-            charts.ColorUtil.fromDartColor(_entry.value.color),
-        data: _entry.value.portionSeries));
+          id: _entry.key,
+          domainFn: (ActivityPortion act, _) => getDateDisplay(act.dateTime!),
+          measureFn: (ActivityPortion act, _) => act.portion,
+          colorFn: (ActivityPortion act, _) =>
+              charts.ColorUtil.fromDartColor(_entry.value.color),
+          data: _entry.value.portionSeries));
     }
 
     return StackedBarChart(data, animate: true);
@@ -406,7 +438,7 @@ class _MyHomePageState extends State<MyHomePage> {
     ];
   }
 
-  Widget buildTimeRow(BuildContext context) {
+  Widget buildStartTime(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
