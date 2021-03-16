@@ -221,14 +221,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                 const EdgeInsets.symmetric(horizontal: 10.0),
                             child: ElevatedButton(
                                 onPressed: () {
-                                  // Update current activity
                                   TimeOfDay _selTime =
                                       TimeOfDay(hour: _hour, minute: _minute);
                                   TimeOfDay _now = TimeOfDay.now();
                                   Activity _selectedActivity =
                                       _activities[_selectedActivityIndex];
 
-                                  // First check for basic validity of action
                                   try {
                                     EntryHandler.handleSwitch(_entries, _selectedActivity, _selTime, _now);
                                     setState(() {
