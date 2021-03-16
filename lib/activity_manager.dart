@@ -1,12 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_eazytime/activity.dart';
 import 'package:flutter_eazytime/styles.dart';
 
 class ActivityManager extends StatefulWidget {
   ActivityManager(this.activities);
 
-  final List<String> activities;
+  final List<Activity> activities;
 
   @override
   _ActivityManagerState createState() => _ActivityManagerState(activities);
@@ -15,7 +15,7 @@ class ActivityManager extends StatefulWidget {
 class _ActivityManagerState extends State<ActivityManager> {
   _ActivityManagerState(this.activities);
 
-  final List<String> activities;
+  final List<Activity> activities;
   final _textController = TextEditingController();
   final FocusNode _textFocusNode = FocusNode();
   bool _isComposing = false;
@@ -44,7 +44,7 @@ class _ActivityManagerState extends State<ActivityManager> {
                           decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey.shade200, width: 1.0))),
                           height: 50,
                           padding: EdgeInsets.only(left: 8.0),
-                          child: Text(activities[i], style: NormalTextStyle(Colors.black)))),
+                          child: Text(activities[i].name, style: NormalTextStyle(activities[i].color)))),
                   itemCount: activities.length
                 ),
               ),
@@ -93,21 +93,34 @@ class _ActivityManagerState extends State<ActivityManager> {
   void _handleAdd(String text) {
     if (text.isEmpty)
       return;
+    else if (activities.any((act) => act.name == text)) {
+      alert(context, 'Activity \'$text\' already exists.');
+      return;
+    }
     _textController.clear();
     _isComposing = false;
-    activities.add(text);
+    Activity newActivity = Activity(text, ColorSpec.colorCircle[activities.length]);
+    activities.add(newActivity);
     _textFocusNode.requestFocus();
     setState(() {
     });
   }
-}
 
-class ActivityEntry extends StatelessWidget {
-  ActivityEntry(this.name);
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(name, style: NormalTextStyle(Colors.black));
+  void alert(BuildContext context, String info) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Info'),
+            content: Text(info),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('K'))
+            ],
+          );
+        });
   }
 }

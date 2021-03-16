@@ -8,6 +8,8 @@ import 'package:flutter_eazytime/styles.dart';
 import 'activity.dart';
 import 'activity_manager.dart';
 import 'sample_data.dart' as mysamples;
+import 'entry.dart';
+import 'time_extensions.dart';
 
 void main() {
   runApp(EazyTime());
@@ -42,21 +44,21 @@ class _MyHomePageState extends State<MyHomePage> {
 
   _MyHomePageState.withSampleData() {
     _activityHistories = mysamples.SampleData.getSampleHistory();
-    _activities = mysamples.SampleData.getSampleActivities();
+    _activities = mysamples.SampleData.getActivities();
     _entries = mysamples.SampleData.getSampleEntries();
   }
 
   int _hour = 0;
   int _minute = 0;
-  TextEditingController _textController = TextEditingController();
   int _selectedActivityIndex = 0;
+
   PageController _pageController = PageController(initialPage: 1);
-  Map<String, ActivityHistory> _activityHistories = {};
-  ScrollController _historyChartScroller =
+  ScrollController _histChartScroller =
       ScrollController(keepScrollOffset: true);
 
-  List<String> _activities = [];
-  List<Activity> _entries = [];
+  Map<String, ActivityHistory> _activityHistories = {};
+  List<Activity> _activities = [];
+  List<ActivityEntry> _entries = [];
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [
           Scaffold(
             appBar: AppBar(
-                title: Text('History', style: NormalTextStyle()),
+                title: Text('hist', style: NormalTextStyle()),
                 actions: [
                   IconButton(
                       icon: Icon(Icons.arrow_forward),
@@ -85,14 +87,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     children: [
                       Expanded(
                         child: SingleChildScrollView(
-                            controller: _historyChartScroller,
+                            controller: _histChartScroller,
                             scrollDirection: Axis.horizontal,
                             child: SizedBox(
                                 width: 500,
                                 height: 300,
-                                child: buildHistoryChart(context))),
+                                child: buildhistChart(context))),
                       ),
-                      Wrap(children: buildHistoryLegend())
+                      Wrap(children: buildhistLegend())
                     ])),
           ),
           Column(
@@ -223,15 +225,16 @@ class _MyHomePageState extends State<MyHomePage> {
                                   TimeOfDay _selTime =
                                       TimeOfDay(hour: _hour, minute: _minute);
                                   TimeOfDay _now = TimeOfDay.now();
-                                  String _selectedActivity =
+                                  Activity _selectedActivity =
                                       _activities[_selectedActivityIndex];
-                                  // If selected Time is in future alert User
+
+                                  // First check for basic validity of action
                                   String _info = '';
                                   if (_now.isBefore(_selTime))
                                     _info = 'Start time lies in the future!';
                                   else if (_entries.isEmpty && _selTime.isAfter(TimeOfDay(hour: 0, minute: 0)))
                                     _info = 'First entry needs to start at 00:00!';
-                                  else if (_entries.isNotEmpty && _selTime.isAfter(_entries.last.end!))
+                                  else if (_entries.isNotEmpty && _selTime.isAfter(_entries.last.end))
                                     _info = 'Start time can\'t be after the end of the last entry!';
                                   if (_info.isNotEmpty) {
                                     showDialog(
@@ -252,6 +255,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                         });
                                     return;
                                   }
+
+                                  EntryHandler.handleSwitch(_entries, _selectedActivity, _selTime, _now);
+
                                   // Check if selected Time is within a different entry
                                   int _idx = isWithinPreviousEntry(_selTime);
                                   if (_idx >= 0) {
@@ -334,7 +340,7 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {});
   }
 
-  List<Widget> buildHistoryLegend() {
+  List<Widget> buildhistLegend() {
     return _activities
         .map((a) => Container(
               height: 30,
@@ -405,9 +411,9 @@ class _MyHomePageState extends State<MyHomePage> {
     return totalFraction;
   }
 
-  Widget? buildHistoryChart(BuildContext context) {
+  Widget? buildhistChart(BuildContext context) {
     if (_activityHistories.isEmpty)
-      return Text('No history data found.',
+      return Text('No hist data found.',
           style: SecondaryTextStyle(Colors.grey));
     List<charts.Series<ActivityPortion, String>> data = [];
 
@@ -560,25 +566,5 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           );
         });
-  }
-}
-
-extension on TimeOfDay {
-  bool isAfter(TimeOfDay other) {
-    int _timeValueNow = this.hour * 60 + this.minute;
-    int _timeValueOther = other.hour * 60 + other.minute;
-    return _timeValueNow > _timeValueOther;
-  }
-
-  bool isBefore(TimeOfDay other) {
-    int _timeValueNow = this.hour * 60 + this.minute;
-    int _timeValueOther = other.hour * 60 + other.minute;
-    return _timeValueNow < _timeValueOther;
-  }
-
-  bool isSimultaneousTo(TimeOfDay other) {
-    int _timeValueNow = this.hour * 60 + this.minute;
-    int _timeValueOther = other.hour * 60 + other.minute;
-    return _timeValueNow == _timeValueOther;
   }
 }
