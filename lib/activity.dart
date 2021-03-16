@@ -15,7 +15,7 @@ class Activity {
 /// For example, if you sleep 3x throughout a day, this class accumulates
 /// the durations of those, for example to portion = 12.5 hrs
 class ActivityPortion {
-  Activity? activity;
+  Activity activity;
   double portion;
   DateTime? dateTime = DateTime.now();
 
@@ -26,6 +26,9 @@ class ActivityPortion {
   ActivityPortion.s(this.activity, this.portion, String dateTime) {
     this.dateTime = DateTime.parse(dateTime);
   }
+
+  String get name => activity.name;
+  Color get color => activity.color;
 }
 
 class ActivityHistory {
@@ -37,10 +40,13 @@ class ActivityHistory {
   }
 
   void add(ActivityPortion portion) {
-    if (portion.activity?.name != this.activity.name)
+    if (portion.activity.name != this.activity.name)
       throw 'ActivityPortion has different name than this Activityhist!';
     portionSeries.add(portion);
   }
+
+  String get name => activity.name;
+  Color get color => activity.color;
 }
 
 String getDateDisplay(DateTime date) {

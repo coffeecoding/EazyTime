@@ -92,9 +92,9 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: SizedBox(
                                 width: 500,
                                 height: 300,
-                                child: buildhistChart(context))),
+                                child: buildHistoryChart(context))),
                       ),
-                      Wrap(children: buildhistLegend())
+                      Wrap(children: buildHistoryLegend())
                     ])),
           ),
           Column(
@@ -117,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: SizedBox(
                               width: 500,
                               height: 300,
-                              child: Center(child: buildPieChart(context)))),
+                              child: Center(child: buildEntryChart(context)))),
                       Container(
                           alignment: Alignment.center,
                           color: Colors.white,
@@ -286,7 +286,7 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {});
   }
 
-  List<Widget> buildhistLegend() {
+  List<Widget> buildHistoryLegend() {
     return _activities
         .map((a) => Container(
               height: 30,
@@ -298,7 +298,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       width: 15,
                       margin: EdgeInsets.symmetric(horizontal: 4.0),
                       color: Colors.blue),
-                  Text(a, style: LegendTextStyle(Colors.black))
+                  Text(a.name, style: LegendTextStyle(Colors.black))
                 ],
               ),
             ))
@@ -316,48 +316,50 @@ class _MyHomePageState extends State<MyHomePage> {
       for (var _actPortion in _entry.value.portionSeries) {
         _total += _actPortion.portion;
       }
-      _data.add(new ActivityPortion(_entry.key, _entry.value.color, _total));
+      _data.add(new ActivityPortion(_entry.value.activity, _total));
     }
 
     var _series = [
       charts.Series<ActivityPortion, int>(
         id: 'TotalActivity',
-        domainFn: (ActivityPortion act, _) => _activities.indexOf(act.name),
+        domainFn: (ActivityPortion act, _) => _activities.indexOf(act.activity),
         measureFn: (ActivityPortion act, _) => act.portion,
         data: _data,
         colorFn: (ActivityPortion act, _) =>
-            charts.ColorUtil.fromDartColor(act.color),
-        labelAccessorFn: (ActivityPortion act, _) => act.name,
+            charts.ColorUtil.fromDartColor(act.activity.color),
+        labelAccessorFn: (ActivityPortion act, _) => act.activity.name,
       )
     ];
 
     return new SimplePieChart(_series);
   }
 
-  Widget? buildPieChart(BuildContext context) {
+  Widget? buildEntryChart(BuildContext context) {
     if (_entries.isEmpty)
       return Text('No entries found', style: SecondaryTextStyle(Colors.grey));
-    return PartialPieChart(getChartData(), getPassedFractionOfDay(),
+
+    List<charts.Series<ActivityEntry, int>> chartData = [
+      new charts.Series<ActivityEntry, int>(
+        id: 'Activities',
+        domainFn: (ActivityEntry act, _) => _entries.indexOf(act),
+        measureFn: (ActivityEntry act, _) => act.fractionOfDay(),
+        data: _entries,
+        colorFn: (ActivityEntry act, _) =>
+            charts.ColorUtil.fromDartColor(act.color),
+        labelAccessorFn: (ActivityEntry act, _) => act.name,
+      )
+    ];
+
+    double passedFractionOfDay = 0.0;
+    _entries.forEach((element) {
+      passedFractionOfDay += element.fractionOfDay();
+    });
+
+    return PartialPieChart(chartData, passedFractionOfDay,
         animate: false);
   }
 
-  int isWithinPreviousEntry(TimeOfDay time) {
-    if (_entries.isEmpty) return -1;
-    for (int i = 0; i < _entries.length-1; i++) {
-      if (_entries[i].end!.isAfter(time)) return i;
-    }
-    return -1;
-  }
-
-  double getPassedFractionOfDay() {
-    double totalFraction = 0.0;
-    _entries.forEach((element) {
-      totalFraction += element.fractionOfDay();
-    });
-    return totalFraction;
-  }
-
-  Widget? buildhistChart(BuildContext context) {
+  Widget? buildHistoryChart(BuildContext context) {
     if (_activityHistories.isEmpty)
       return Text('No hist data found.',
           style: SecondaryTextStyle(Colors.grey));
@@ -380,13 +382,13 @@ class _MyHomePageState extends State<MyHomePage> {
     if (_entries.isEmpty)
       return Text('No data found', style: SecondaryTextStyle(Colors.grey));
     var _activityTotalsMap = {};
-    for (Activity _entry in _entries) {
+    for (ActivityEntry _entry in _entries) {
       if (_activityTotalsMap.containsKey(_entry.name))
         _activityTotalsMap[_entry.name].portion +=
             (_entry.fractionOfDay() * 24);
       else
         _activityTotalsMap[_entry.name] = ActivityPortion(
-            _entry.name, _entry.color, _entry.fractionOfDay() * 24);
+            _entry.activity, _entry.fractionOfDay() * 24);
     }
 
     List<charts.Series<ActivityPortion, String>> data = [];
@@ -404,20 +406,6 @@ class _MyHomePageState extends State<MyHomePage> {
       ));
     }
     return StackedBarChart(data, animate: true);
-  }
-
-  List<charts.Series<Activity, int>> getChartData() {
-    return [
-      new charts.Series<Activity, int>(
-        id: 'Activities',
-        domainFn: (Activity activity, _) => _entries.indexOf(activity),
-        measureFn: (Activity activity, _) => activity.fractionOfDay(),
-        data: _entries,
-        colorFn: (Activity activity, _) =>
-            charts.ColorUtil.fromDartColor(activity.color),
-        labelAccessorFn: (Activity activity, _) => activity.name,
-      )
-    ];
   }
 
   Widget buildStartTime(BuildContext context) {
@@ -442,7 +430,7 @@ class _MyHomePageState extends State<MyHomePage> {
         diameterRatio: 1.5,
         children: _activities
             .map((e) => Text(
-                  e,
+                  e.name,
                   style: PrimaryTextStyle(),
                 ))
             .toList(),
@@ -494,8 +482,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void showDebugInfo(BuildContext context) {
     String info = "Debug Information: \n";
-    for (Activity _entry in _entries) info += _entry.toString();
-    info += "Passed: ${getPassedFractionOfDay()}";
+    for (ActivityEntry _entry in _entries)
+      info += _entry.toString();
 
     showDialog(
         context: context,

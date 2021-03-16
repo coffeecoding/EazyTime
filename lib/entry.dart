@@ -24,6 +24,9 @@ class ActivityEntry {
         && this.start == other.start
         && this.end == other.end;
   }
+
+  String get name => activity.name;
+  Color get color => activity.color;
 }
 
 class EntryHandler {
