@@ -229,20 +229,17 @@ class _MyHomePageState extends State<MyHomePage> {
                                       _activities[_selectedActivityIndex];
 
                                   // First check for basic validity of action
-                                  String _info = '';
-                                  if (_now.isBefore(_selTime))
-                                    _info = 'Start time lies in the future!';
-                                  else if (_entries.isEmpty && _selTime.isAfter(TimeOfDay(hour: 0, minute: 0)))
-                                    _info = 'First entry needs to start at 00:00!';
-                                  else if (_entries.isNotEmpty && _selTime.isAfter(_entries.last.end))
-                                    _info = 'Start time can\'t be after the end of the last entry!';
-                                  if (_info.isNotEmpty) {
+                                  try {
+                                    EntryHandler.handleSwitch(_entries, _selectedActivity, _selTime, _now);
+                                    setState(() {
+                                    });
+                                  } on Exception catch (e) {
                                     showDialog(
                                         context: context,
                                         builder: (BuildContext context) {
                                           return AlertDialog(
                                             title: Text('Info'),
-                                            content: Text(_info),
+                                            content: Text(e.toString()),
                                             actions: [
                                               ElevatedButton(
                                                   onPressed: () {
@@ -253,58 +250,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                             ],
                                           );
                                         });
-                                    return;
                                   }
-
-                                  EntryHandler.handleSwitch(_entries, _selectedActivity, _selTime, _now);
-
-                                  // Check if selected Time is within a different entry
-                                  int _idx = isWithinPreviousEntry(_selTime);
-                                  if (_idx >= 0) {
-                                    Activity _prevEntry = _entries[_idx];
-
-                                    if (_selTime.isSimultaneousTo(_prevEntry.start!)) {
-                                      // and remove all entries
-                                      _entries.clear();
-                                    }
-                                    else {
-                                      // and remove all later entries
-                                      int _entryCount = _entries.length;
-                                      for (int i = _idx + 1;
-                                      i < _entryCount;
-                                      i++) _entries.removeAt(_idx +1);
-                                      // If the previous entry is the same as the selected one ...
-                                      if (_prevEntry.name == _activities[_selectedActivityIndex]) {
-                                        // ... adjust its end time to now
-                                        _prevEntry.end = _now;
-                                        setState(() {});
-                                        return;
-                                      } else {
-                                        // Otherwise, set its end time to the selected time
-                                        _prevEntry.end = _selTime;
-                                      }
-                                    }
-                                  }
-                                  Activity _current = _entries.last;
-                                  if (_selTime.isSimultaneousTo(_now)) {
-                                    // update current activity
-                                    int _lastEntryActivityIndex =
-                                        _activities.indexOf(_current.name);
-                                    if (_lastEntryActivityIndex ==
-                                        _selectedActivityIndex) {
-                                      _current.end = TimeOfDay.now();
-                                      setState(() {});
-                                      return;
-                                    }
-                                  }
-                                  Activity _new = Activity(
-                                      _activities[_selectedActivityIndex],
-                                      ColorSpec.colorCircle[_entries.length %
-                                          ColorSpec.colorCircle.length]);
-                                  _new.start = _selTime;
-                                  _new.end = _now;
-                                  _entries.add(_new);
-                                  setState(() {});
                                 },
                                 child:
                                     Text('Switch', style: ButtonTextStyle())),
