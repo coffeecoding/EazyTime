@@ -32,13 +32,11 @@ class ActivityEntry {
 class EntryHandler {
   /// Handles switching between activities given the current state by updating entries accordingly.
   static void handleSwitch(List<ActivityEntry> entries, Activity newAct, TimeOfDay startTime, TimeOfDay now) {
-    ActivityEntry lastEntry = entries.last;
-
-    if (startTime.isBefore(now))
+    if (startTime.isAfter(now))
       throw 'Start time cannot be in the future.';
     else if (entries.isEmpty && startTime.isAfter(TimeOfDay(hour: 0, minute: 0)))
       throw 'First entry needs to start at 00:00.';
-    else if (entries.isNotEmpty && startTime.isAfter(lastEntry.end))
+    else if (entries.isNotEmpty && startTime.isAfter(entries.last.end))
       throw 'Start time can\'t be after the end of the last entry!';
 
     if (startTime.isSimultaneousTo(TimeOfDay(hour: 0, minute: 0)) || entries.isEmpty) {
@@ -50,6 +48,7 @@ class EntryHandler {
 
     int idx = idxOfEntryStartingAfterAndEndingTheLatestAt(startTime, entries);
     int idxLast = entries.length-1;
+    ActivityEntry lastEntry = entries.last;
 
     if (startTime.isBefore(lastEntry.start)) {
       ActivityEntry affectedEntry = entries[idx];
