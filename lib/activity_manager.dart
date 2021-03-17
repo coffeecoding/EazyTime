@@ -2,8 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_eazytime/activity.dart';
 import 'package:flutter_eazytime/styles.dart';
-
-import 'data_access.dart';
 import 'data_access.dart';
 
 class ActivityManager extends StatefulWidget {
@@ -13,13 +11,12 @@ class ActivityManager extends StatefulWidget {
 
   @override
   _ActivityManagerState createState() =>
-      _ActivityManagerState(activities, DataAccessClient());
+      _ActivityManagerState(activities);
 }
 
 class _ActivityManagerState extends State<ActivityManager> {
-  _ActivityManagerState(this.activities, this.dbClient);
+  _ActivityManagerState(this.activities);
 
-  final DataAccessClient dbClient;
   final _textController = TextEditingController();
   final FocusNode _textFocusNode = FocusNode();
   List<Activity> activities;
@@ -112,11 +109,11 @@ class _ActivityManagerState extends State<ActivityManager> {
     }
     _textController.clear();
     _isComposing = false;
-    int c = await dbClient.getActiveActivityCount();
+    int c = await DBClient.instance.getActiveActivityCount();
     Activity newActivity = Activity(
         text, ColorSpec.colorCircle[c % ColorSpec.colorCircle.length].value);
-    dbClient.insertActivity(newActivity);
-    activities = await dbClient.getActiveActivities();
+    DBClient.instance.insertActivity(newActivity);
+    activities = await DBClient.instance.getActiveActivities();
     _textFocusNode.requestFocus();
     setState(() {});
   }
