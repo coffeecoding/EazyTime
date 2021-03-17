@@ -7,29 +7,29 @@ class SampleData {
 
   static List<ActivityEntry> getSampleEntries() {
     return <ActivityEntry>[
-      ActivityEntry(getActivities()[2], TimeOfDay(hour: 0, minute: 0),
+      ActivityEntry(getActivities()[2], DateTime.now(), TimeOfDay(hour: 0, minute: 0),
           TimeOfDay(hour: 7, minute: 0)),
-      ActivityEntry(getActivities()[1], TimeOfDay(hour: 7, minute: 0),
+      ActivityEntry(getActivities()[1], DateTime.now(), TimeOfDay(hour: 7, minute: 0),
           TimeOfDay(hour: 8, minute: 0)),
-      ActivityEntry(getActivities()[0], TimeOfDay(hour: 8, minute: 0),
+      ActivityEntry(getActivities()[0], DateTime.now(), TimeOfDay(hour: 8, minute: 0),
           TimeOfDay(hour: 10, minute: 0)),
-      ActivityEntry(getActivities()[3], TimeOfDay(hour: 10, minute: 0),
+      ActivityEntry(getActivities()[3], DateTime.now(), TimeOfDay(hour: 10, minute: 0),
           TimeOfDay(hour: 11, minute: 20)),
-      ActivityEntry(getActivities()[1], TimeOfDay(hour: 11, minute: 20),
+      ActivityEntry(getActivities()[1], DateTime.now(), TimeOfDay(hour: 11, minute: 20),
           TimeOfDay(hour: 13, minute: 0)),
-      ActivityEntry(getActivities()[0], TimeOfDay(hour: 13, minute: 0),
+      ActivityEntry(getActivities()[0], DateTime.now(), TimeOfDay(hour: 13, minute: 0),
           TimeOfDay(hour: 16, minute: 30)),
     ];
   }
 
   static List<Activity> getActivities() {
     return <Activity>[
-      Activity('Work', ColorSpec.myGreen),
-      Activity('Eat', ColorSpec.myAmber),
-      Activity('Sleep', ColorSpec.myBlue),
-      Activity('Shower', ColorSpec.myTeal),
-      Activity('Sports', ColorSpec.myRed),
-      Activity('Groceries', ColorSpec.myPurple),
+      Activity('Work', ColorSpec.myGreen.value),
+      Activity('Eat', ColorSpec.myAmber.value),
+      Activity('Sleep', ColorSpec.myBlue.value),
+      Activity('Shower', ColorSpec.myTeal.value),
+      Activity('Sports', ColorSpec.myRed.value),
+      Activity('Groceries', ColorSpec.myPurple.value),
     ];
   }
 

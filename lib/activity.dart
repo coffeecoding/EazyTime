@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
 
 class Activity {
+  final int? id;
   final String name;
-  final Color color;
+  final int color;
 
-  Activity(this.name, this.color);
+  Activity(this.name, this.color, [this.id]);
 
   bool equals(Activity other) {
     return this.name == other.name;
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'color': color,
+    };
   }
 }
 
@@ -28,7 +37,7 @@ class ActivityPortion {
   }
 
   String get name => activity.name;
-  Color get color => activity.color;
+  int get color => activity.color;
 }
 
 class ActivityHistory {
@@ -46,7 +55,7 @@ class ActivityHistory {
   }
 
   String get name => activity.name;
-  Color get color => activity.color;
+  int get color => activity.color;
 }
 
 String getDateDisplay(DateTime date) {

@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_eazytime/partial_pie_chart.dart';
@@ -56,9 +58,9 @@ class _MyHomePageState extends State<MyHomePage> {
   ScrollController _histChartScroller =
       ScrollController(keepScrollOffset: true);
 
-  Map<String, ActivityHistory> _activityHistories = {};
   List<Activity> _activities = [];
   List<ActivityEntry> _entries = [];
+  Map<String, ActivityHistory> _activityHistories = {};
 
   @override
   Widget build(BuildContext context) {
@@ -324,7 +326,7 @@ class _MyHomePageState extends State<MyHomePage> {
         measureFn: (ActivityPortion act, _) => act.portion,
         data: _data,
         colorFn: (ActivityPortion act, _) =>
-            charts.ColorUtil.fromDartColor(act.activity.color),
+            charts.ColorUtil.fromDartColor(Color(act.activity.color)),
         labelAccessorFn: (ActivityPortion act, _) => act.activity.name,
       )
     ];
@@ -343,7 +345,7 @@ class _MyHomePageState extends State<MyHomePage> {
         measureFn: (ActivityEntry act, _) => act.fractionOfDay(),
         data: _entries,
         colorFn: (ActivityEntry act, _) =>
-            charts.ColorUtil.fromDartColor(act.color),
+            charts.ColorUtil.fromDartColor(Color(act.color)),
         labelAccessorFn: (ActivityEntry act, _) => act.name,
       )
     ];
@@ -369,7 +371,7 @@ class _MyHomePageState extends State<MyHomePage> {
           domainFn: (ActivityPortion act, _) => getDateDisplay(act.dateTime!),
           measureFn: (ActivityPortion act, _) => act.portion,
           colorFn: (ActivityPortion act, _) =>
-              charts.ColorUtil.fromDartColor(_entry.value.color),
+              charts.ColorUtil.fromDartColor(Color(_entry.value.color)),
           data: _entry.value.portionSeries));
     }
 
@@ -398,7 +400,7 @@ class _MyHomePageState extends State<MyHomePage> {
         measureFn: (ActivityPortion act, _) => act.portion,
         data: [_activityTotalsMap[_key]],
         colorFn: (ActivityPortion act, _) =>
-            charts.ColorUtil.fromDartColor(act.color),
+            charts.ColorUtil.fromDartColor(Color(act.color)),
         labelAccessorFn: (ActivityPortion act, _) => act.name,
         displayName: _key,
       ));
@@ -482,6 +484,13 @@ class _MyHomePageState extends State<MyHomePage> {
     String info = "Debug Information: \n";
     for (ActivityEntry _entry in _entries)
       info += _entry.toString();
+    info += Colors.primaries[1].toString() + "\n";
+    info += Colors.red.toString() + "\n";
+    info += Colors.primaries.singleWhere((c) => c.toString() == 'MaterialColor(primary value: Color(0xfff44336))').toString() + "\n";
+    info += Colors.red.value.toString() + "\n";
+    Color x = new Color(Colors.red.value);
+    Color y = Colors.red;
+    info += x.toString() + "\n";
 
     showDialog(
         context: context,

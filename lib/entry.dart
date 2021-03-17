@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 import 'time_extensions.dart';
 import 'activity.dart';
+import 'datetime_utils.dart';
 
 class ActivityEntry {
   TimeOfDay start;
   TimeOfDay end;
+  final DateTime date;
+  final int? activityId;
+  final int? id;
   final Activity activity;
 
-  ActivityEntry(this.activity,
+  String get name => activity.name;
+  int get color => activity.color;
+
+  ActivityEntry(this.activity, this.date,
       [this.start = const TimeOfDay(hour: 0, minute: 0),
-      this.end = const TimeOfDay(hour: 0, minute: 0)]);
+      this.end = const TimeOfDay(hour: 0, minute: 0), this.activityId, this.id]);
 
   double fractionOfDay() => ((end.hour * 60 + end.minute) -
       (start.hour * 60 + start.minute)) / 1440;
@@ -25,8 +32,14 @@ class ActivityEntry {
         && this.end == other.end;
   }
 
-  String get name => activity.name;
-  Color get color => activity.color;
+  Map<String, dynamic> toMap() {
+    return {
+      'activityId': activity.id,
+      'date': DateTimeUtils.dateToString(date),
+      'startTime': DateTimeUtils.timeToString(start),
+      'endTime': DateTimeUtils.timeToString(end)
+    };
+  }
 }
 
 class EntryHandler {
@@ -39,9 +52,11 @@ class EntryHandler {
     else if (entries.isNotEmpty && startTime.isAfter(entries.last.end))
       throw 'Start time can\'t be after the end of the last entry!';
 
+    DateTime today = DateTime.now();
+
     if (startTime.isSimultaneousTo(TimeOfDay(hour: 0, minute: 0)) || entries.isEmpty) {
       entries.clear();
-      ActivityEntry newEntry = ActivityEntry(newAct, startTime, now);
+      ActivityEntry newEntry = ActivityEntry(newAct, today, startTime, now);
       entries.add(newEntry);
       return;
     }
@@ -54,7 +69,7 @@ class EntryHandler {
       ActivityEntry affectedEntry = entries[idx];
       affectedEntry.end = startTime;
       removeAllAfterIndex(idx, entries);
-      ActivityEntry newEntry = ActivityEntry(newAct, startTime, now);
+      ActivityEntry newEntry = ActivityEntry(newAct, today, startTime, now);
       entries.add(newEntry);
     }
 
@@ -64,7 +79,7 @@ class EntryHandler {
       }
       else {
         entries.removeLast();
-        ActivityEntry newEntry = ActivityEntry(newAct, startTime, now);
+        ActivityEntry newEntry = ActivityEntry(newAct, today, startTime, now);
         entries.add(newEntry);
       }
     }
@@ -82,7 +97,7 @@ class EntryHandler {
       }
       else {
         lastEntry.end = startTime;
-        ActivityEntry newEntry = ActivityEntry(newAct, startTime, now);
+        ActivityEntry newEntry = ActivityEntry(newAct, today, startTime, now);
         entries.add(newEntry);
       }
     }
@@ -94,7 +109,7 @@ class EntryHandler {
       }
       else {
         lastEntry.end = startTime;
-        ActivityEntry newEntry = ActivityEntry(newAct, startTime, now);
+        ActivityEntry newEntry = ActivityEntry(newAct, today, startTime, now);
         entries.add(newEntry);
       }
     }

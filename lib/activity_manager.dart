@@ -44,7 +44,7 @@ class _ActivityManagerState extends State<ActivityManager> {
                           decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey.shade200, width: 1.0))),
                           height: 50,
                           padding: EdgeInsets.only(left: 8.0),
-                          child: Text(activities[i].name, style: NormalTextStyle(activities[i].color)))),
+                          child: Text(activities[i].name, style: NormalTextStyle(Color(activities[i].color))))),
                   itemCount: activities.length
                 ),
               ),
@@ -99,7 +99,7 @@ class _ActivityManagerState extends State<ActivityManager> {
     }
     _textController.clear();
     _isComposing = false;
-    Activity newActivity = Activity(text, ColorSpec.colorCircle[activities.length]);
+    Activity newActivity = Activity(text, ColorSpec.colorCircle[activities.length].value);
     activities.add(newActivity);
     _textFocusNode.requestFocus();
     setState(() {
