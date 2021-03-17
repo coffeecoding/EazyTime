@@ -15,10 +15,10 @@ class DBClient {
   static final DBClient instance = DBClient._privateConstructor();
 
   static Database? _database;
-  Future<Database?> get database async {
-    if (_database != null) return _database;
+  Future<Database> get database async {
+    if (_database != null) return _database!;
     _database = await _initDatabase();
-    return _database;
+    return _database!;
   }
 
   Future<Database> _initDatabase() async {
@@ -38,6 +38,8 @@ class DBClient {
   }
 
   Future<void> insertActivity(Activity activity) async {
+    final Database db = await database;
+
     Activity? existingActivity = await existsActivity(activity);
     if (existingActivity != null) {
       if (existingActivity.isActive) return;
@@ -48,13 +50,15 @@ class DBClient {
       }
     }
 
-    await _database!.insert('activities', activity.toMap(),
+    await db.insert('activities', activity.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,);
   }
   
   Future<Activity?> existsActivity(Activity activity) async {
+    final Database db = await database;
+
     List<Map<String, dynamic>> result =
-      await _database!.query('SELECT * FROM activities WHERE name = ${activity.name}');
+      await db.rawQuery('SELECT * FROM activities WHERE name = ?', [activity.name]);
 
     if (result.isNotEmpty)
       return await getActivityByName(activity.name);
@@ -62,7 +66,9 @@ class DBClient {
   }
 
   Future<void> updateActivity(Activity activity) async {
-    await _database!.update('activities', activity.toMap(),
+    final Database db = await database;
+
+    await db.update('activities', activity.toMap(),
       where: "activityId = ?", whereArgs: [activity.id]);
   }
 
@@ -72,13 +78,17 @@ class DBClient {
   }
 
   Future<Activity> getActivityById(int id) async {
-    List<Map<String, dynamic>> map = await _database!.query('SELECT * from activities WHERE activityId = $id');
+    final Database db = await database;
+
+    List<Map<String, dynamic>> map = await db.rawQuery('SELECT * from activities WHERE activityId = ?', [id]);
 
     return Activity(map[0]['name'], map[0]['color'], map[0]['activityId'], map[0]['isActive']);
   }
 
   Future<Activity> getActivityByName(String name) async {
-    List<Map<String, dynamic>> map = await _database!.query('SELECT * from activities WHERE name = $name');
+    final Database db = await database;
+
+    List<Map<String, dynamic>> map = await db.rawQuery('SELECT * from activities WHERE name = ?', [name]);
 
     return Activity(map[0]['name'], map[0]['color'], map[0]['activityId'], map[0]['isActive']);
   }
@@ -89,8 +99,10 @@ class DBClient {
   }
 
   Future<List<Activity>> getActiveActivities() async {
-    final List<Map<String, dynamic>> maps = await _database!.query('SELECT * '
-        'FROM activities WHERE isActive = 1');
+    final Database db = await database;
+
+    final List<Map<String, dynamic>> maps = await db.rawQuery(
+        'SELECT * FROM activities WHERE isActive = ?', [1]);
 
     return List.generate(maps.length, (i) {
       return Activity(
@@ -103,21 +115,29 @@ class DBClient {
   }
 
   Future<void> insertEntry(ActivityEntry entry) async {
-    await _database!.insert('entries', entry.toMap(),
+    final Database db = await database;
+
+    await db.insert('entries', entry.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> updateEntry(ActivityEntry entry) async {
-    await _database!.update('entries', entry.toMap(),
+    final Database db = await database;
+
+    await db.update('entries', entry.toMap(),
         where: "entryId = ?", whereArgs: [entry.id]);
   }
 
   Future<void> deleteEntry(ActivityEntry entry) async {
-    await _database!.delete('entries', where: "entryId = ?", whereArgs: [entry.id]);
+    final Database db = await database;
+
+    await db.delete('entries', where: "entryId = ?", whereArgs: [entry.id]);
   }
 
   Future<List<ActivityEntry>> getEntries() async {
-    final List<Map<String, dynamic>> maps = await _database!.query('SELECT * '
+    final Database db = await database;
+
+    final List<Map<String, dynamic>> maps = await db.rawQuery('SELECT * '
         'FROM entries INNER JOIN activities ON activities.activityId = entries.activityId');
 
     List<ActivityEntry> result = List.generate(maps.length, (i) {
@@ -134,11 +154,13 @@ class DBClient {
   }
 
   Future<List<ActivityEntry>> getEntriesByDate(DateTime date) async {
+    final Database db = await database;
+
     String dateString = DateTimeUtils.dateToString(date);
 
-    final List<Map<String, dynamic>> maps = await _database!.query('SELECT * '
+    final List<Map<String, dynamic>> maps = await db.rawQuery('SELECT * '
         'FROM entries INNER JOIN activities ON activities.activityId = entries.activityId '
-        'WHERE date = $dateString');
+        'WHERE date = ?', [dateString]);
 
     List<ActivityEntry> result = List.generate(maps.length, (i) {
       return ActivityEntry(

@@ -14,7 +14,7 @@ class Activity {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
+      'activityId': id,
       'name': name,
       'color': color,
       'isActive': isActive

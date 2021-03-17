@@ -34,6 +34,7 @@ class ActivityEntry {
 
   Map<String, dynamic> toMap() {
     return {
+      'entryId': id,
       'activityId': activity.id,
       'date': DateTimeUtils.dateToString(date),
       'startTime': DateTimeUtils.timeToString(start),
