@@ -33,8 +33,8 @@ class DataAccessClient {
     if (existingActivity != null) {
       if (existingActivity.isActive) return;
       else {
-        existingActivity.isActive = true;
-        await updateActivity(existingActivity);
+        activity.isActive = true;
+        await updateActivity(activity);
         return;
       }
     }
@@ -82,6 +82,13 @@ class DataAccessClient {
     List<Map<String, dynamic>> map = await db.query('SELECT * from activities WHERE name = $name');
 
     return Activity(map[0]['name'], map[0]['color'], map[0]['activityId'], map[0]['isActive']);
+  }
+
+  Future<int> getActiveActivityCount() async {
+    final Database db = await database;
+
+    List<Activity> activeOnes = await getActiveActivities();
+    return activeOnes.length;
   }
 
   Future<List<Activity>> getActiveActivities() async {
