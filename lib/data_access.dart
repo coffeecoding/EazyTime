@@ -13,7 +13,7 @@ class DataAccessClient {
   void initialize() async {
     WidgetsFlutterBinding.ensureInitialized();
     this.database = openDatabase(
-      join(await getDatabasesPath(), 'easytimetracker_db.db'),
+      join(await getDatabasesPath(), 'easyTime_database.db'),
 
       onCreate: (db, version) {
         return db.execute(
