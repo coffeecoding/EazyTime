@@ -29,8 +29,29 @@ class DataAccessClient {
   Future<void> insertActivity(Activity activity) async {
     final Database db = await database;
 
+    Activity? existingActivity = await existsActivity(activity);
+    if (existingActivity != null) {
+      if (existingActivity.isActive) return;
+      else {
+        existingActivity.isActive = true;
+        await updateActivity(existingActivity);
+        return;
+      }
+    }
+
     await db.insert('activities', activity.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,);
+  }
+  
+  Future<Activity?> existsActivity(Activity activity) async {
+    final Database db = await database;
+    
+    List<Map<String, dynamic>> result =
+      await db.query('SELECT * FROM activities WHERE name = ${activity.name}');
+
+    if (result.isNotEmpty)
+      return await getActivityByName(activity.name);
+    return null;
   }
 
   Future<void> updateActivity(Activity activity) async {
@@ -43,7 +64,8 @@ class DataAccessClient {
   Future<void> deleteActivity(Activity activity) async {
     final Database db = await database;
 
-    await db.delete('activities', where: "activityId = ?", whereArgs: [activity.id]);
+    activity.isActive = false;
+    await updateActivity(activity);
   }
 
   Future<Activity> getActivityById(int id) async {
@@ -51,7 +73,7 @@ class DataAccessClient {
 
     List<Map<String, dynamic>> map = await db.query('SELECT * from activities WHERE activityId = $id');
 
-    return Activity(map[0]['name'], map[0]['color'], map[0]['activityId']);
+    return Activity(map[0]['name'], map[0]['color'], map[0]['activityId'], map[0]['isActive']);
   }
 
   Future<Activity> getActivityByName(String name) async {
@@ -59,7 +81,7 @@ class DataAccessClient {
 
     List<Map<String, dynamic>> map = await db.query('SELECT * from activities WHERE name = $name');
 
-    return Activity(map[0]['name'], map[0]['color'], map[0]['activityId']);
+    return Activity(map[0]['name'], map[0]['color'], map[0]['activityId'], map[0]['isActive']);
   }
 
   Future<List<Activity>> getActiveActivities() async {
@@ -72,7 +94,8 @@ class DataAccessClient {
       return Activity(
           maps[i]['name'],
           maps[i]['color'],
-          maps[i]['activityId']
+          maps[i]['activityId'],
+          maps[i]['isActive']
       );
     });
   }

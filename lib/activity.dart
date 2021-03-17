@@ -4,8 +4,9 @@ class Activity {
   final int? id;
   final String name;
   final int color;
+  bool isActive;
 
-  Activity(this.name, this.color, [this.id]);
+  Activity(this.name, this.color, [this.id, this.isActive = false]);
 
   bool equals(Activity other) {
     return this.name == other.name;
@@ -16,6 +17,7 @@ class Activity {
       'id': id,
       'name': name,
       'color': color,
+      'isActive': isActive
     };
   }
 }
