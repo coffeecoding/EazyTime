@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 
-class Activity {
+abstract class IActivityProperties {
+  String get name;
+  int get color;
+}
+
+class Activity extends IActivityProperties {
   final int? id;
   final String name;
   final int color;
@@ -28,7 +33,7 @@ class Activity {
 /// Describes the absolute portion an Activity covers of a day (24).
 /// For example, if you sleep 3x throughout a day, this class accumulates
 /// the durations of those, for example to portion = 12.5 hrs
-class ActivityPortion {
+class ActivityPortion extends IActivityProperties {
   Activity activity;
   double portion;
   DateTime? dateTime = DateTime.now();

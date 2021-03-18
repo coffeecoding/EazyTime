@@ -11,6 +11,7 @@ import 'data_access.dart';
 import 'sample_data.dart' as mysamples;
 import 'entry.dart';
 import 'entry_handler.dart';
+import 'styles.dart';
 
 void main() {
   runApp(EazyTime());
@@ -107,7 +108,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 child: buildHistoryChart(context))),
                       ),
                       Flexible(
-                          flex: 1, child: Wrap(children: buildHistoryLegend()))
+                          flex: 1, child: Wrap(children: buildActivityLegend(_activities)))
                     ])),
           ),
           Column(
@@ -131,14 +132,30 @@ class _MyHomePageState extends State<MyHomePage> {
                               width: 500,
                               height: 300,
                               child: Center(child: buildEntryChart(context)))),
-                      Container(
-                          alignment: Alignment.center,
-                          color: Colors.white,
-                          child: SizedBox(
-                              width: 200,
-                              height: 300,
-                              child:
-                                  Center(child: buildStackedChart(context)))),
+                      Row(
+                        children: [
+                          Flexible(
+                            flex: 2,
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: Padding(
+                                padding: EdgeInsets.all(16.0),
+                                  child: Center(child: buildStackedChart(context)))),
+                          ),
+                          Flexible(
+                            flex: 1,
+                            fit: FlexFit.loose,
+                            child: Container(
+                              alignment: Alignment.centerLeft,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  children: buildActivityPortionLegend(_entries)
+                                )
+                              ),
+                            )
+                          )
+                        ]
+                      ),
                     ],
                   ),
                 ),
@@ -185,7 +202,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 await _updateActivities();
                                 setState(() { });
                               },
-                              child: Text('CLR')),
+                              child: Text('xENT')),
                           /*ElevatedButton(
                               onPressed: () async {
                                 await DBClient.instance.deleteAllActivities();
@@ -193,7 +210,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 await _getEntriesForToday();
                                 setState(() { });
                               },
-                              child: Text('DEL'))*/
+                              child: Text('xACT'))*/
                         ]),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -315,23 +332,13 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {});
   }
 
-  List<Widget> buildHistoryLegend() {
-    return _activities
-        .map((a) => Container(
-              height: 30,
-              width: 80,
-              child: Row(
-                children: [
-                  Container(
-                      height: 18,
-                      width: 18,
-                      margin: EdgeInsets.only(right: 4.0),
-                      color: Color(a.color)),
-                  Text(a.name, style: LegendTextStyle(Colors.black))
-                ],
-              ),
-            ))
-        .toList();
+  List<Widget> buildActivityLegend(List<Activity> activities) {
+    return activities.map((i) => buildActivityLegendItem(i)).toList();
+  }
+
+  List<Widget> buildActivityPortionLegend(List<ActivityEntry> entries) {
+    Map<String,ActivityPortion> map = entriesToAbsolutePortions(entries);
+    return map.entries.map((e) => buildActivityLegendItem(e.value)).toList();
   }
 
   Widget? buildAllTimeChart(BuildContext context) {
@@ -412,16 +419,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget? buildStackedChart(BuildContext context) {
     if (_entries.isEmpty)
       return Text('No data found', style: SecondaryTextStyle(Colors.grey));
-    var _activityTotalsMap = {};
-    for (ActivityEntry _entry in _entries) {
-      if (_activityTotalsMap.containsKey(_entry.name))
-        _activityTotalsMap[_entry.name].portion +=
-            (_entry.fractionOfDay() * 24);
-      else
-        _activityTotalsMap[_entry.name] = ActivityPortion(
-            _entry.activity, _entry.fractionOfDay() * 24);
-    }
-
+    Map<String, ActivityPortion> _activityTotalsMap = entriesToAbsolutePortions(_entries);
     List<charts.Series<ActivityPortion, String>> data = [];
 
     for (String _key in _activityTotalsMap.keys) {
@@ -429,7 +427,7 @@ class _MyHomePageState extends State<MyHomePage> {
         id: _key,
         domainFn: (__, _) => 'Today',
         measureFn: (ActivityPortion act, _) => act.portion,
-        data: [_activityTotalsMap[_key]],
+        data: [_activityTotalsMap[_key]!],
         colorFn: (ActivityPortion act, _) =>
             charts.ColorUtil.fromDartColor(Color(act.color)),
         labelAccessorFn: (ActivityPortion act, _) => act.name,
@@ -437,6 +435,36 @@ class _MyHomePageState extends State<MyHomePage> {
       ));
     }
     return StackedBarChart(data, animate: true);
+  }
+
+  Map<String, ActivityPortion> entriesToAbsolutePortions(List<ActivityEntry> l) {
+    Map<String, ActivityPortion> _activityTotalsMap = {};
+    for (ActivityEntry _entry in _entries) {
+      if (_activityTotalsMap.containsKey(_entry.name))
+        _activityTotalsMap[_entry.name]!.portion +=
+        (_entry.fractionOfDay() * 24);
+      else
+        _activityTotalsMap[_entry.name] = ActivityPortion(
+            _entry.activity, _entry.fractionOfDay() * 24);
+    }
+    return _activityTotalsMap;
+  }
+  
+  Widget buildActivityLegendItem(IActivityProperties activity) {
+    return Container(
+      height: 30,
+      width: 80,
+      child: Row(
+        children: [
+          Container(
+            height: 18,
+            width: 18,
+            margin: EdgeInsets.only(right: 4.0),
+            color: Color(activity.color)),
+          Text(activity.name, style: LegendTextStyle(Colors.black))
+        ],
+      ),
+    );
   }
 
   Widget buildStartTime(BuildContext context) {

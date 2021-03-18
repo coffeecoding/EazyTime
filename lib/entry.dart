@@ -3,7 +3,7 @@ import 'time_extensions.dart';
 import 'activity.dart';
 import 'datetime_utils.dart';
 
-class ActivityEntry {
+class ActivityEntry extends IActivityProperties {
   TimeOfDay start;
   TimeOfDay end;
   final DateTime date;
