@@ -128,10 +128,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     children: [
                       Container(
                           alignment: Alignment.center,
-                          child: SizedBox(
-                              width: 500,
-                              height: 300,
-                              child: Center(child: buildEntryChart(context)))),
+                          child: Padding(
+                            padding: EdgeInsets.all(32.0),
+                            child: Center(child: buildEntryChart(context)))),
                       Row(
                         children: [
                           Flexible(
