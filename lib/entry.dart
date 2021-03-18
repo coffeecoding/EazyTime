@@ -43,6 +43,8 @@ class ActivityEntry {
   }
 }
 
+/// Deprecated. This one only manipulates the local entries. The implementation
+/// entry_handler.dart actually does the data handling with the database.
 class EntryHandler {
   /// Handles switching between activities given the current state by updating entries accordingly.
   static void handleSwitch(List<ActivityEntry> entries, Activity newAct, TimeOfDay startTime, TimeOfDay now) {

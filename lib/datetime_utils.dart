@@ -3,7 +3,7 @@ import 'package:flutter/src/material/time.dart';
 class DateTimeUtils {
 
   static String timeToString(TimeOfDay timeOfDay) {
-    return '${timeOfDay.hour}:${timeOfDay.minute}';
+    return '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
   }
 
   static TimeOfDay parseTime(String time) {

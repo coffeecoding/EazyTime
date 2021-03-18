@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'datetime_utils.dart';
 
 extension TimeUtils on TimeOfDay {
   bool isAfter(TimeOfDay other) {
@@ -19,5 +20,5 @@ extension TimeUtils on TimeOfDay {
     return _timeValueNow == _timeValueOther;
   }
 
-  String display() => '${this.hour}:${this.minute}';
+  String display() => DateTimeUtils.timeToString(this);
 }

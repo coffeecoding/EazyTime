@@ -11,7 +11,7 @@ class EntrySwitchHandler {
   static Future<void> handleSwitch(List<ActivityEntry> entries, Activity newAct, TimeOfDay startTime, TimeOfDay now) async {
 
     if (startTime.isAfter(now))
-      throw 'Start time cannot be in the future.';
+      throw Exception('Start time cannot be in the future.');
     else if (entries.isEmpty && startTime.isAfter(TimeOfDay(hour: 0, minute: 0)))
       throw 'First entry needs to start at 00:00.';
     else if (entries.isNotEmpty && startTime.isAfter(entries.last.end))

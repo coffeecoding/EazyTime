@@ -178,20 +178,22 @@ class _MyHomePageState extends State<MyHomePage> {
                                 showDebugInfo(context);
                               },
                               child: Text('DBG')),
-                          /*ElevatedButton(
+                          ElevatedButton(
                               onPressed: () async {
                                 await DBClient.instance.deleteEntriesByDate(DateTime.now());
                                 await _getEntriesForToday();
-                                setState(() { });
-                              },
-                              child: Text('CLR')),*/
-                          ElevatedButton(
-                              onPressed: () async {
-                                await DBClient.instance.deleteAllActivities();
                                 await _updateActivities();
                                 setState(() { });
                               },
-                              child: Text('DEL'))
+                              child: Text('CLR')),
+                          /*ElevatedButton(
+                              onPressed: () async {
+                                await DBClient.instance.deleteAllActivities();
+                                await _updateActivities();
+                                await _getEntriesForToday();
+                                setState(() { });
+                              },
+                              child: Text('DEL'))*/
                         ]),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -248,30 +250,15 @@ class _MyHomePageState extends State<MyHomePage> {
                                   Activity _selectedActivity =
                                       _activities[_selectedActivityIndex];
 
-                                  try {
-                                    await EntrySwitchHandler.handleSwitch(_entries, _selectedActivity, _selTime, _now);
+                                  await EntrySwitchHandler.handleSwitch(_entries, _selectedActivity, _selTime, _now).then(
+                                  (val) async {
                                     await _updateActivities();
                                     await _getEntriesForToday();
                                     setState(() {
                                     });
-                                  } on Exception catch (e) {
-                                    showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            title: Text('Info'),
-                                            content: Text(e.toString()),
-                                            actions: [
-                                              ElevatedButton(
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                  child: Text('Oh okay',
-                                                      style: ButtonTextStyle()))
-                                            ],
-                                          );
-                                        });
-                                  }
+                                  }).catchError((e) {
+                                    showError(e.toString());
+                                  });
                                 },
                                 child:
                                     Text('Switch', style: ButtonTextStyle())),
@@ -301,6 +288,25 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
     );
+  }
+
+  void showError(String text) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Info'),
+            content: Text(text),
+            actions: [
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Oh okay',
+                      style: ButtonTextStyle()))
+            ],
+          );
+        });
   }
 
   onNavigateHere(dynamic val) async {
