@@ -49,9 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initData() async {
     await _updateActivities();
     await _getEntriesForToday();
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   _MyHomePageState.withSampleData() {
@@ -108,7 +106,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                 child: buildHistoryChart(context))),
                       ),
                       Flexible(
-                          flex: 1, child: Wrap(children: buildActivityLegend(_activities)))
+                          flex: 1,
+                          child:
+                              Wrap(children: buildActivityLegend(_activities)))
                     ])),
           ),
           Column(
@@ -129,32 +129,29 @@ class _MyHomePageState extends State<MyHomePage> {
                       Container(
                           alignment: Alignment.center,
                           child: Padding(
-                            padding: EdgeInsets.all(32.0),
-                            child: Center(child: buildEntryChart(context)))),
-                      Row(
-                        children: [
-                          Flexible(
-                            flex: 2,
-                            child: Container(
+                              padding: EdgeInsets.all(32.0),
+                              child: Center(child: buildEntryChart(context)))),
+                      Row(children: [
+                        Flexible(
+                          flex: 2,
+                          child: Container(
                               alignment: Alignment.center,
                               child: Padding(
-                                padding: EdgeInsets.all(16.0),
-                                  child: Center(child: buildStackedChart(context)))),
-                          ),
-                          Flexible(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: Center(
+                                      child: buildStackedChart(context)))),
+                        ),
+                        Flexible(
                             flex: 1,
                             fit: FlexFit.loose,
                             child: Container(
                               alignment: Alignment.centerLeft,
                               child: SingleChildScrollView(
-                                child: Column(
-                                  children: buildActivityPortionLegend(_entries)
-                                )
-                              ),
-                            )
-                          )
-                        ]
-                      ),
+                                  child: Column(
+                                      children: buildActivityPortionLegend(
+                                          _entries))),
+                            ))
+                      ]),
                     ],
                   ),
                 ),
@@ -196,10 +193,11 @@ class _MyHomePageState extends State<MyHomePage> {
                               child: Text('DBG')),
                           ElevatedButton(
                               onPressed: () async {
-                                await DBClient.instance.deleteEntriesByDate(DateTime.now());
+                                await DBClient.instance
+                                    .deleteEntriesByDate(DateTime.now());
                                 await _getEntriesForToday();
                                 await _updateActivities();
-                                setState(() { });
+                                setState(() {});
                               },
                               child: Text('xENT')),
                           /*ElevatedButton(
@@ -266,12 +264,15 @@ class _MyHomePageState extends State<MyHomePage> {
                                   Activity _selectedActivity =
                                       _activities[_selectedActivityIndex];
 
-                                  await EntrySwitchHandler.handleSwitch(_entries, _selectedActivity, _selTime, _now).then(
-                                  (val) async {
+                                  await EntrySwitchHandler.handleSwitch(
+                                          _entries,
+                                          _selectedActivity,
+                                          _selTime,
+                                          _now)
+                                      .then((val) async {
                                     await _updateActivities();
                                     await _getEntriesForToday();
-                                    setState(() {
-                                    });
+                                    setState(() {});
                                   }).catchError((e) {
                                     showError(e.toString());
                                   });
@@ -298,7 +299,16 @@ class _MyHomePageState extends State<MyHomePage> {
             body: Container(
               color: Colors.white,
               alignment: Alignment.center,
-              child: SizedBox(height: 300, child: buildAllTimeChart(context)!),
+              child: FutureBuilder<Widget>(
+                  future: buildAllTimeChart(),
+                  builder:
+                      (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+                    if (snapshot.hasData) {
+                      return snapshot.data!;
+                    } else {
+                      return Text('Retrieving data ...', style: SecondaryTextStyle(Colors.black));
+                    }
+                  }),
             ),
           ),
         ],
@@ -318,8 +328,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text('Oh okay',
-                      style: ButtonTextStyle()))
+                  child: Text('Oh okay', style: ButtonTextStyle()))
             ],
           );
         });
@@ -336,25 +345,35 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   List<Widget> buildActivityPortionLegend(List<ActivityEntry> entries) {
-    Map<String,ActivityPortion> map = entriesToAbsolutePortions(entries);
-    return map.entries.map((e) => buildActivityLegendItem(e.value,
-        '${e.value.name} ${(e.value.portion * 100 / 24).toStringAsFixed(1)} %')).toList();
+    Map<String, ActivityPortion> map = entriesToAbsolutePortions(entries);
+    return map.entries
+        .map((e) => buildActivityLegendItem(e.value,
+            '${e.value.name} ${(e.value.portion * 100 / 24).toStringAsFixed(1)} %'))
+        .toList();
   }
 
-  Widget? buildAllTimeChart(BuildContext context) {
+  /*
+    IDEA TO CHECK IF WE REACHED A NEW DAY
+    - check if its past 00:00 AM yet there are no entries for today
+    - if so then update last entry from yday and clean view for today !
+   */
 
+  Future<Widget> buildAllTimeChart() async {
+    List<ActivityEntry> entries = await DBClient.instance.getAllEntries();
 
-    if (_activityHistories.isEmpty)
+    if (entries.isEmpty)
       return Text('No data found.', style: SecondaryTextStyle(Colors.grey));
+
+    Map<String, ActivityPortion> portions = entriesToAbsolutePortions(entries);
+
+    double totalHours = 0.0;
+    portions.forEach((key, value) { totalHours += value.portion; });
 
     List<ActivityPortion> _data = [];
 
-    for (var _entry in _activityHistories.entries) {
-      double _total = 0.0;
-      for (var _actPortion in _entry.value.portionSeries) {
-        _total += _actPortion.portion;
-      }
-      _data.add(new ActivityPortion(_entry.value.activity, _total));
+    for (var entry in portions.entries) {
+      double percentage = entry.value.portion / totalHours * 100;
+      _data.add(ActivityPortion(entry.value.activity, percentage));
     }
 
     var _series = [
@@ -365,11 +384,12 @@ class _MyHomePageState extends State<MyHomePage> {
         data: _data,
         colorFn: (ActivityPortion act, _) =>
             charts.ColorUtil.fromDartColor(Color(act.activity.color)),
-        labelAccessorFn: (ActivityPortion act, _) => act.activity.name,
+        labelAccessorFn: (ActivityPortion act, _) =>
+          '${act.activity.name} ${act.portion.toStringAsFixed(1)} %',
       )
     ];
 
-    return new SimplePieChart(_series);
+    return SimplePieChart(_series, animate: true);
   }
 
   Widget? buildEntryChart(BuildContext context) {
@@ -393,15 +413,14 @@ class _MyHomePageState extends State<MyHomePage> {
       passedFractionOfDay += element.fractionOfDay();
     });
 
-    return PartialPieChart(chartData, passedFractionOfDay,
-        animate: false);
+    return PartialPieChart(chartData, passedFractionOfDay, animate: false);
   }
 
   Widget? buildHistoryChart(BuildContext context) {
     if (_activityHistories.isEmpty)
       return Center(
-        child: Text('No hist data found.',
-            style: SecondaryTextStyle(Colors.grey)),
+        child:
+            Text('No hist data found.', style: SecondaryTextStyle(Colors.grey)),
       );
     List<charts.Series<ActivityPortion, String>> data = [];
 
@@ -421,7 +440,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget? buildStackedChart(BuildContext context) {
     if (_entries.isEmpty)
       return Text('No data found', style: SecondaryTextStyle(Colors.grey));
-    Map<String, ActivityPortion> _activityTotalsMap = entriesToAbsolutePortions(_entries);
+    Map<String, ActivityPortion> _activityTotalsMap =
+        entriesToAbsolutePortions(_entries);
     List<charts.Series<ActivityPortion, String>> data = [];
 
     for (String _key in _activityTotalsMap.keys) {
@@ -439,15 +459,16 @@ class _MyHomePageState extends State<MyHomePage> {
     return StackedBarChart(data, animate: true);
   }
 
-  Map<String, ActivityPortion> entriesToAbsolutePortions(List<ActivityEntry> l) {
+  Map<String, ActivityPortion> entriesToAbsolutePortions(
+      List<ActivityEntry> l) {
     Map<String, ActivityPortion> _activityTotalsMap = {};
     for (ActivityEntry _entry in _entries) {
       if (_activityTotalsMap.containsKey(_entry.name))
         _activityTotalsMap[_entry.name]!.portion +=
-        (_entry.fractionOfDay() * 24);
+            (_entry.fractionOfDay() * 24);
       else
-        _activityTotalsMap[_entry.name] = ActivityPortion(
-            _entry.activity, _entry.fractionOfDay() * 24);
+        _activityTotalsMap[_entry.name] =
+            ActivityPortion(_entry.activity, _entry.fractionOfDay() * 24);
     }
     return _activityTotalsMap;
   }
@@ -462,10 +483,10 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Row(
         children: [
           Container(
-            height: 18,
-            width: 18,
-            margin: EdgeInsets.only(right: 4.0),
-            color: Color(activity.color)),
+              height: 18,
+              width: 18,
+              margin: EdgeInsets.only(right: 4.0),
+              color: Color(activity.color)),
           Text(text, style: LegendTextStyle(Colors.black))
         ],
       ),
@@ -477,7 +498,9 @@ class _MyHomePageState extends State<MyHomePage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text('Start Time', style: SmallSpacedTextStyle()),
-        Text('${_hour.toString().padLeft(2, '0')} : ${_minute.toString().padLeft(2, '0')}', style: PrimaryTextStyle())
+        Text(
+            '${_hour.toString().padLeft(2, '0')} : ${_minute.toString().padLeft(2, '0')}',
+            style: PrimaryTextStyle())
       ],
     );
   }
@@ -546,7 +569,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _updateActivities() async {
     _activities = await DBClient.instance.getActiveActivities();
-    _activities.sort((a,b) => a.name.compareTo(b.name));
+    _activities.sort((a, b) => a.name.compareTo(b.name));
   }
 
   Future<void> _getEntriesForToday() async {
@@ -555,11 +578,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void showDebugInfo(BuildContext context) async {
     String info = "Debug Information: \n";
-    for (ActivityEntry _entry in _entries)
-      info += _entry.toString();
+    for (ActivityEntry _entry in _entries) info += _entry.toString();
     info += Colors.primaries[1].toString() + "\n";
     info += Colors.red.toString() + "\n";
-    info += Colors.primaries.singleWhere((c) => c.toString() == 'MaterialColor(primary value: Color(0xfff44336))').toString() + "\n";
+    info += Colors.primaries
+            .singleWhere((c) =>
+                c.toString() ==
+                'MaterialColor(primary value: Color(0xfff44336))')
+            .toString() +
+        "\n";
     info += Colors.red.value.toString() + "\n";
     Color x = new Color(Colors.red.value);
     Color y = Colors.red;

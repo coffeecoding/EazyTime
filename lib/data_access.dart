@@ -183,7 +183,7 @@ class DBClient {
     await db.delete('entries', where: "entryId = ?", whereArgs: [entry.id]);
   }
 
-  Future<List<ActivityEntry>> getEntries() async {
+  Future<List<ActivityEntry>> getAllEntries() async {
     final Database db = await database;
 
     final List<Map<String, dynamic>> maps = await db.rawQuery('SELECT * '
@@ -230,7 +230,7 @@ class DBClient {
     String result = 'Db contents: \n';
     
     List<Activity> acts = await getAllActivities();
-    List<ActivityEntry> entries = await getEntries();
+    List<ActivityEntry> entries = await getAllEntries();
 
     acts.forEach((element) { result += element.toString() + "\n"; });
     entries.forEach((element) { result += element.toString() + "\n"; });

@@ -30,9 +30,11 @@ class Activity extends IActivityProperties {
   }
 }
 
-/// Describes the absolute portion an Activity covers of a day (24).
-/// For example, if you sleep 3x throughout a day, this class accumulates
-/// the durations of those, for example to portion = 12.5 hrs
+/// Describes the absolute amount of hours of an activity.
+/// For example, if you sleep 3x throughout a day, 4 hrs each, this class
+/// accumulates the durations of those, for example to portion = 12 hrs,
+/// if it is called with the respective dateTime. Otherwise, it will just
+/// contain an absolute amount of hours of said activity even across dateTimes.
 class ActivityPortion extends IActivityProperties {
   Activity activity;
   double portion;
