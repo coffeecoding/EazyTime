@@ -1,51 +1,14 @@
 import 'package:flutter/material.dart';
+import 'data_access.dart';
 import 'time_extensions.dart';
 import 'activity.dart';
 import 'datetime_utils.dart';
+import 'entry.dart';
 
-class ActivityEntry {
-  TimeOfDay start;
-  TimeOfDay end;
-  final DateTime date;
-  final int? activityId;
-  final int? id;
-  Activity activity;
-
-  String get name => activity.name;
-  int get color => activity.color;
-
-  ActivityEntry(this.activity, this.date,
-      [this.start = const TimeOfDay(hour: 0, minute: 0),
-      this.end = const TimeOfDay(hour: 0, minute: 0), this.activityId, this.id]);
-
-  double fractionOfDay() => ((end.hour * 60 + end.minute) -
-      (start.hour * 60 + start.minute)) / 1440;
-
-  @override
-  String toString() => '${this.activity.name}: '
-      '${start.display()} to ${end.display()} '
-      '(${fractionOfDay().toStringAsFixed(2)})';
-
-  bool equals(ActivityEntry other) {
-    return this.activity.equals(other.activity)
-        && this.start == other.start
-        && this.end == other.end;
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'entryId': id,
-      'activityId': activity.id,
-      'date': DateTimeUtils.dateToString(date),
-      'startTime': DateTimeUtils.timeToString(start),
-      'endTime': DateTimeUtils.timeToString(end)
-    };
-  }
-}
-
-class EntryHandler {
+class EntrySwitchHandler {
   /// Handles switching between activities given the current state by updating entries accordingly.
-  static void handleSwitch(List<ActivityEntry> entries, Activity newAct, TimeOfDay startTime, TimeOfDay now) {
+  static Future<void> handleSwitch(List<ActivityEntry> entries, Activity newAct, TimeOfDay startTime, TimeOfDay now) async {
+
     if (startTime.isAfter(now))
       throw 'Start time cannot be in the future.';
     else if (entries.isEmpty && startTime.isAfter(TimeOfDay(hour: 0, minute: 0)))
@@ -56,9 +19,12 @@ class EntryHandler {
     DateTime today = DateTime.now();
 
     if (startTime.isSimultaneousTo(TimeOfDay(hour: 0, minute: 0)) || entries.isEmpty) {
-      entries.clear();
+      for (ActivityEntry e in entries) {
+        await DBClient.instance.deleteEntry(e);
+      }
       ActivityEntry newEntry = ActivityEntry(newAct, today, startTime, now);
-      entries.add(newEntry);
+      await DBClient.instance.insertEntry(newEntry);
+      entries = await DBClient.instance.getEntriesByDate(today);
       return;
     }
 
@@ -69,19 +35,21 @@ class EntryHandler {
     if (startTime.isBefore(lastEntry.start)) {
       ActivityEntry affectedEntry = entries[idx];
       affectedEntry.end = startTime;
-      removeAllAfterIndex(idx, entries);
+      await DBClient.instance.updateEntry(affectedEntry);
+      await removeAllAfterIndex(idx, entries);
       ActivityEntry newEntry = ActivityEntry(newAct, today, startTime, now);
-      entries.add(newEntry);
+      await DBClient.instance.insertEntry(newEntry);
     }
 
     else if (startTime.isSimultaneousTo(lastEntry.start)) {
       if (newAct.equals(lastEntry.activity)) {
         lastEntry.end = now;
+        await DBClient.instance.updateEntry(lastEntry);
       }
       else {
-        entries.removeLast();
+        await DBClient.instance.deleteEntry(lastEntry);
         ActivityEntry newEntry = ActivityEntry(newAct, today, startTime, now);
-        entries.add(newEntry);
+        await DBClient.instance.insertEntry(newEntry);
       }
     }
 
@@ -92,28 +60,34 @@ class EntryHandler {
         if (entries.length > 1) {
           ActivityEntry secondLastEntry = entries.elementAt(idxLast-1);
           secondLastEntry.end = startTime;
+          await DBClient.instance.updateEntry(secondLastEntry);
           lastEntry.start = startTime;
         }
         lastEntry.end = now;
+        await DBClient.instance.updateEntry(lastEntry);
       }
       else {
         lastEntry.end = startTime;
+        await DBClient.instance.updateEntry(lastEntry);
         ActivityEntry newEntry = ActivityEntry(newAct, today, startTime, now);
-        entries.add(newEntry);
+        await DBClient.instance.insertEntry(newEntry);
       }
     }
 
     else if (startTime.isSimultaneousTo(lastEntry.end) ||
-            startTime.isSimultaneousTo(now)) {
+        startTime.isSimultaneousTo(now)) {
       if (newAct.equals(lastEntry.activity)) {
         lastEntry.end = now;
+        await DBClient.instance.updateEntry(lastEntry);
       }
       else {
         lastEntry.end = startTime;
+        await DBClient.instance.updateEntry(lastEntry);
         ActivityEntry newEntry = ActivityEntry(newAct, today, startTime, now);
-        entries.add(newEntry);
+        await DBClient.instance.insertEntry(newEntry);
       }
     }
+    entries = await DBClient.instance.getEntriesByDate(today);
   }
 
   static int idxOfEntryStartingAfterAndEndingTheLatestAt(TimeOfDay time, List<ActivityEntry> entries) {
@@ -124,9 +98,9 @@ class EntryHandler {
     return -1;
   }
 
-  static void removeAllAfterIndex(int i, List<ActivityEntry> entries) {
+  static Future<void> removeAllAfterIndex(int i, List<ActivityEntry> entries) async {
     while (entries.length > i+1) {
-      entries.removeAt(i+1);
+      await DBClient.instance.deleteEntry(entries.elementAt(i+1));
     }
   }
 }

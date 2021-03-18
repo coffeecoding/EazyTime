@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_eazytime/partial_pie_chart.dart';
@@ -10,10 +8,9 @@ import 'package:flutter_eazytime/styles.dart';
 import 'activity.dart';
 import 'activity_manager.dart';
 import 'data_access.dart';
-import 'data_access.dart';
 import 'sample_data.dart' as mysamples;
 import 'entry.dart';
-import 'data_access.dart';
+import 'entry_handler.dart';
 
 void main() {
   runApp(EazyTime());
@@ -50,6 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void initData() async {
     await _updateActivities();
+    await _getEntriesForToday();
     setState(() {
 
     });
@@ -233,7 +231,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 10.0),
                             child: ElevatedButton(
-                                onPressed: () {
+                                onPressed: () async {
                                   TimeOfDay _selTime =
                                       TimeOfDay(hour: _hour, minute: _minute);
                                   TimeOfDay _now = TimeOfDay.now();
@@ -241,7 +239,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                       _activities[_selectedActivityIndex];
 
                                   try {
-                                    EntryHandler.handleSwitch(_entries, _selectedActivity, _selTime, _now);
+                                    await EntrySwitchHandler.handleSwitch(_entries, _selectedActivity, _selTime, _now);
+                                    await _updateActivities();
+                                    await _getEntriesForToday();
                                     setState(() {
                                     });
                                   } on Exception catch (e) {
@@ -295,6 +295,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   onNavigateHere(dynamic val) async {
     await _updateActivities();
+    await _getEntriesForToday();
     setState(() {});
   }
 
@@ -495,6 +496,10 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _updateActivities() async {
     _activities = await DBClient.instance.getActiveActivities();
     _activities.sort((a,b) => a.name.compareTo(b.name));
+  }
+
+  Future<void> _getEntriesForToday() async {
+    _entries = await DBClient.instance.getEntriesByDate(DateTime.now());
   }
 
   void showDebugInfo(BuildContext context) async {

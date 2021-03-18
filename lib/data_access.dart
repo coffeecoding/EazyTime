@@ -26,14 +26,22 @@ class DBClient {
     return await openDatabase(
       join(await getDatabasesPath(), 'easyTime_database.db'),
 
-      onCreate: (db, version) {
-        return db.execute(
+      onCreate: (db, version) async {
+        await db.execute(
           'CREATE TABLE activities(activityId INTEGER PRIMARY KEY, name TEXT, color INTEGER, isActive INTEGER DEFAULT 0);'
+        );
+        await db.execute(
           'CREATE TABLE entries(entryId INTEGER PRIMARY KEY, activityId INTEGER, date TEXT, startTime TEXT, endTime TEXT);'
         );
       },
 
-      version: 1,
+      onUpgrade: (db, oldVer, newVer) async {
+        return await db.execute(
+            'CREATE TABLE entries(entryId INTEGER PRIMARY KEY, activityId INTEGER, date TEXT, startTime TEXT, endTime TEXT);'
+        );
+      },
+
+      version: 3,
     );
   }
 
@@ -129,6 +137,12 @@ class DBClient {
     });
   }
 
+  Future<void> deleteEntriesByDate(String date) async {
+    final Database db = await database;
+
+    await db.delete('entries', where: "date = ?", whereArgs: [date]);
+  }
+
   Future<void> insertEntry(ActivityEntry entry) async {
     final Database db = await database;
 
@@ -157,10 +171,10 @@ class DBClient {
 
     List<ActivityEntry> result = List.generate(maps.length, (i) {
       return ActivityEntry(
-        Activity(maps[i]['name'], maps[i]['color']),
-        maps[i]['date'],
-        maps[i]['startTime'],
-        maps[i]['endTime'],
+        Activity(maps[i]['name'], maps[i]['color'], maps[i]['activityId'], maps[i]['isActive']),
+        DateTime.parse(maps[i]['date']),
+        DateTimeUtils.parseTime(maps[i]['startTime']),
+        DateTimeUtils.parseTime(maps[i]['endTime']),
         maps[i]['activityId'],
         maps[i]['entryId']
       );
@@ -179,24 +193,27 @@ class DBClient {
 
     List<ActivityEntry> result = List.generate(maps.length, (i) {
       return ActivityEntry(
-          Activity(maps[i]['name'], maps[i]['color']),
-          maps[i]['date'],
-          maps[i]['startTime'],
-          maps[i]['endTime'],
+          Activity(maps[i]['name'], maps[i]['color'], maps[i]['activityId'], maps[i]['isActive']),
+          DateTime.parse(maps[i]['date']),
+          DateTimeUtils.parseTime(maps[i]['startTime']),
+          DateTimeUtils.parseTime(maps[i]['endTime']),
           maps[i]['activityId'],
           maps[i]['entryId']
       );
     });
+
     return result;
   }
   
   Future<String> inspectDatabase() async {
     final Database db = await database;
+    String result = 'Db contents: \n';
     
     List<Activity> acts = await getAllActivities();
+    List<ActivityEntry> entries = await getEntries();
 
-    String result = 'Db contents: \n';
     acts.forEach((element) { result += element.toString() + "\n"; });
+    entries.forEach((element) { result += element.toString() + "\n"; });
     return result;
   }
 }

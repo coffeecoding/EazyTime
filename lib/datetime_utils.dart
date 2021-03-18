@@ -12,7 +12,7 @@ class DateTimeUtils {
   }
 
   static String dateToString(DateTime dateTime) {
-    return '${dateTime.year}-${dateTime.month}-${dateTime.day}';
+    return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
   }
 
 }
