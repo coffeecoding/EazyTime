@@ -80,7 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [
           Scaffold(
             appBar: AppBar(
-                title: Text('hist', style: NormalTextStyle()),
+                title: Text('History', style: NormalTextStyle()),
                 actions: [
                   IconButton(
                       icon: Icon(Icons.arrow_forward),
@@ -96,7 +96,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      Expanded(
+                      Flexible(
+                        flex: 2,
                         child: SingleChildScrollView(
                             controller: _histChartScroller,
                             scrollDirection: Axis.horizontal,
@@ -105,7 +106,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 height: 300,
                                 child: buildHistoryChart(context))),
                       ),
-                      Wrap(children: buildHistoryLegend())
+                      Flexible(
+                          flex: 1, child: Wrap(children: buildHistoryLegend()))
                     ])),
           ),
           Column(
@@ -176,12 +178,20 @@ class _MyHomePageState extends State<MyHomePage> {
                                 showDebugInfo(context);
                               },
                               child: Text('DBG')),
-                          ElevatedButton(
-                              onPressed: () {
-                                _entries.clear();
+                          /*ElevatedButton(
+                              onPressed: () async {
+                                await DBClient.instance.deleteEntriesByDate(DateTime.now());
+                                await _getEntriesForToday();
                                 setState(() { });
                               },
-                              child: Text('CLR'))
+                              child: Text('CLR')),*/
+                          ElevatedButton(
+                              onPressed: () async {
+                                await DBClient.instance.deleteAllActivities();
+                                await _updateActivities();
+                                setState(() { });
+                              },
+                              child: Text('DEL'))
                         ]),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -307,10 +317,10 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Row(
                 children: [
                   Container(
-                      height: 15,
-                      width: 15,
-                      margin: EdgeInsets.symmetric(horizontal: 4.0),
-                      color: Colors.blue),
+                      height: 18,
+                      width: 18,
+                      margin: EdgeInsets.only(right: 4.0),
+                      color: Color(a.color)),
                   Text(a.name, style: LegendTextStyle(Colors.black))
                 ],
               ),
@@ -374,8 +384,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget? buildHistoryChart(BuildContext context) {
     if (_activityHistories.isEmpty)
-      return Text('No hist data found.',
-          style: SecondaryTextStyle(Colors.grey));
+      return Center(
+        child: Text('No hist data found.',
+            style: SecondaryTextStyle(Colors.grey)),
+      );
     List<charts.Series<ActivityPortion, String>> data = [];
 
     for (var _entry in _activityHistories.entries) {

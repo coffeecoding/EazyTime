@@ -85,6 +85,18 @@ class DBClient {
     await updateActivity(activity);
   }
 
+  Future<void> deleteActivityByName(String name) async {
+    final Database db = await database;
+
+    await db.delete('activities', where: "name = ?", whereArgs: [name]);
+  }
+
+  Future<void> deleteAllActivities() async {
+    final Database db = await database;
+
+    await db.rawQuery('delete from activities');
+  }
+
   Future<Activity> getActivityById(int id) async {
     final Database db = await database;
 
@@ -137,10 +149,18 @@ class DBClient {
     });
   }
 
-  Future<void> deleteEntriesByDate(String date) async {
+  Future<void> deleteEntriesByDateString(String date) async {
     final Database db = await database;
 
     await db.delete('entries', where: "date = ?", whereArgs: [date]);
+  }
+
+  Future<void> deleteEntriesByDate(DateTime date) async {
+    final Database db = await database;
+
+    String dateString = DateTimeUtils.dateToString(date);
+
+    await db.delete('entries', where: "date = ?", whereArgs: [dateString]);
   }
 
   Future<void> insertEntry(ActivityEntry entry) async {

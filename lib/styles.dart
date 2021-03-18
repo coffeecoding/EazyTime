@@ -70,15 +70,15 @@ class ColorSpec {
   static Color myTeal = Colors.teal.shade300;
 
   static List<Color> colorCircle = <Color>[
-    Colors.purple,
-    Colors.pink,
-    Colors.red,
-    Colors.deepOrange,
-    Colors.orange,
-    Colors.amber,
-    Colors.green,
-    Colors.teal,
-    Colors.blue,
-    Colors.deepPurple
+    Colors.purple.shade300,
+    Colors.pink.shade300,
+    Colors.red.shade300,
+    Colors.deepOrange.shade300,
+    Colors.orange.shade300,
+    Colors.amber.shade300,
+    Colors.green.shade300,
+    Colors.teal.shade300,
+    Colors.blue.shade300,
+    Colors.deepPurple.shade300
   ];
 }
