@@ -332,15 +332,18 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   List<Widget> buildActivityLegend(List<Activity> activities) {
-    return activities.map((i) => buildActivityLegendItem(i)).toList();
+    return activities.map((i) => buildActivityLegendItem(i, i.name)).toList();
   }
 
   List<Widget> buildActivityPortionLegend(List<ActivityEntry> entries) {
     Map<String,ActivityPortion> map = entriesToAbsolutePortions(entries);
-    return map.entries.map((e) => buildActivityLegendItem(e.value)).toList();
+    return map.entries.map((e) => buildActivityLegendItem(e.value,
+        '${e.value.name} ${(e.value.portion * 100 / 24).toStringAsFixed(1)} %')).toList();
   }
 
   Widget? buildAllTimeChart(BuildContext context) {
+
+
     if (_activityHistories.isEmpty)
       return Text('No data found.', style: SecondaryTextStyle(Colors.grey));
 
@@ -448,8 +451,11 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     return _activityTotalsMap;
   }
-  
-  Widget buildActivityLegendItem(IActivityProperties activity) {
+
+  /// Parameter text is not necessary if we only want to display the name of
+  /// the activity. However, for some legends we may want to display additional
+  /// information such as percentage of day in the stacked chart for today.
+  Widget buildActivityLegendItem(IActivityProperties activity, String text) {
     return Container(
       height: 30,
       width: 80,
@@ -460,7 +466,7 @@ class _MyHomePageState extends State<MyHomePage> {
             width: 18,
             margin: EdgeInsets.only(right: 4.0),
             color: Color(activity.color)),
-          Text(activity.name, style: LegendTextStyle(Colors.black))
+          Text(text, style: LegendTextStyle(Colors.black))
         ],
       ),
     );

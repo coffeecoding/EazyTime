@@ -10,12 +10,8 @@ class EntrySwitchHandler {
   /// Handles switching between activities given the current state by updating entries accordingly.
   static Future<void> handleSwitch(List<ActivityEntry> entries, Activity newAct, TimeOfDay startTime, TimeOfDay now) async {
 
-    if (startTime.isAfter(now))
-      throw Exception('Start time cannot be in the future.');
-    else if (entries.isEmpty && startTime.isAfter(TimeOfDay(hour: 0, minute: 0)))
+    if (entries.isEmpty && startTime.isAfter(TimeOfDay(hour: 0, minute: 0)))
       throw 'First entry needs to start at 00:00.';
-    else if (entries.isNotEmpty && startTime.isAfter(entries.last.end))
-      throw 'Start time can\'t be after the end of the last entry!';
 
     DateTime today = DateTime.now();
 
@@ -76,7 +72,7 @@ class EntrySwitchHandler {
     }
 
     else if (startTime.isSimultaneousTo(lastEntry.end) ||
-        startTime.isSimultaneousTo(now)) {
+        startTime.isAfter(lastEntry.end)) {
       if (newAct.equals(lastEntry.activity)) {
         lastEntry.end = now;
         await DBClient.instance.updateEntry(lastEntry);
