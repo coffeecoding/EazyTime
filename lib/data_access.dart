@@ -37,20 +37,20 @@ class DBClient {
     );
   }
 
-  Future<void> insertActivity(Activity activity) async {
+  Future<int> insertActivity(Activity activity) async {
     final Database db = await database;
 
     Activity? existingActivity = await existsActivity(activity);
     if (existingActivity != null) {
-      if (existingActivity.isActive) return;
+      if (existingActivity.isActive == 1) return existingActivity.id!;
       else {
-        activity.isActive = true;
-        await updateActivity(activity);
-        return;
+        existingActivity.isActive = 1;
+        await updateActivity(existingActivity);
+        return existingActivity.id!;
       }
     }
 
-    await db.insert('activities', activity.toMap(),
+    return await db.insert('activities', activity.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,);
   }
   
@@ -73,7 +73,7 @@ class DBClient {
   }
 
   Future<void> deleteActivity(Activity activity) async {
-    activity.isActive = false;
+    activity.isActive = 0;
     await updateActivity(activity);
   }
 
@@ -96,6 +96,21 @@ class DBClient {
   Future<int> getActiveActivityCount() async {
     List<Activity> activeOnes = await getActiveActivities();
     return activeOnes.length;
+  }
+  
+  Future<List<Activity>> getAllActivities() async {
+    final Database db = await database;
+
+    final List<Map<String, dynamic>> maps = await db.query('activities');
+
+    return List.generate(maps.length, (i) {
+      return Activity(
+          maps[i]['name'],
+          maps[i]['color'],
+          maps[i]['activityId'],
+          maps[i]['isActive']
+      );
+    });
   }
 
   Future<List<Activity>> getActiveActivities() async {
@@ -172,6 +187,16 @@ class DBClient {
           maps[i]['entryId']
       );
     });
+    return result;
+  }
+  
+  Future<String> inspectDatabase() async {
+    final Database db = await database;
+    
+    List<Activity> acts = await getAllActivities();
+
+    String result = 'Db contents: \n';
+    acts.forEach((element) { result += element.toString() + "\n"; });
     return result;
   }
 }

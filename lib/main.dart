@@ -9,9 +9,11 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter_eazytime/styles.dart';
 import 'activity.dart';
 import 'activity_manager.dart';
+import 'data_access.dart';
+import 'data_access.dart';
 import 'sample_data.dart' as mysamples;
 import 'entry.dart';
-import 'time_extensions.dart';
+import 'data_access.dart';
 
 void main() {
   runApp(EazyTime());
@@ -42,7 +44,16 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  _MyHomePageState();
+  _MyHomePageState() {
+    initData();
+  }
+
+  void initData() async {
+    await _updateActivities();
+    setState(() {
+
+    });
+  }
 
   _MyHomePageState.withSampleData() {
     _activityHistories = mysamples.SampleData.getSampleHistory();
@@ -282,7 +293,8 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  onNavigateHere(dynamic val) {
+  onNavigateHere(dynamic val) async {
+    await _updateActivities();
     setState(() {});
   }
 
@@ -480,7 +492,12 @@ class _MyHomePageState extends State<MyHomePage> {
     _selectedActivityIndex = index;
   }
 
-  void showDebugInfo(BuildContext context) {
+  Future<void> _updateActivities() async {
+    _activities = await DBClient.instance.getActiveActivities();
+    _activities.sort((a,b) => a.name.compareTo(b.name));
+  }
+
+  void showDebugInfo(BuildContext context) async {
     String info = "Debug Information: \n";
     for (ActivityEntry _entry in _entries)
       info += _entry.toString();
@@ -491,6 +508,8 @@ class _MyHomePageState extends State<MyHomePage> {
     Color x = new Color(Colors.red.value);
     Color y = Colors.red;
     info += x.toString() + "\n";
+
+    info = await DBClient.instance.inspectDatabase();
 
     showDialog(
         context: context,

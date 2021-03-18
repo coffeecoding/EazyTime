@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_eazytime/activity.dart';
 import 'package:flutter_eazytime/styles.dart';
 import 'data_access.dart';
+import 'data_access.dart';
+import 'data_access.dart';
 
 class ActivityManager extends StatefulWidget {
   ActivityManager(this.activities);
@@ -41,7 +43,7 @@ class _ActivityManagerState extends State<ActivityManager> {
                         key: UniqueKey(),
                         background:
                             Flexible(child: Container(color: ColorSpec.myRed)),
-                        onDismissed: (dir) => (activities.removeAt(i)),
+                        onDismissed: (dir) => _handleDismissActivity(dir, i),
                         child: Container(
                             alignment: Alignment.centerLeft,
                             decoration: BoxDecoration(
@@ -100,6 +102,16 @@ class _ActivityManagerState extends State<ActivityManager> {
     );
   }
 
+  void _handleDismissActivity(DismissDirection dir, int i) async {
+    Activity activityToDel = activities.elementAt(i);
+    await DBClient.instance.deleteActivity(activityToDel);
+    //activities.removeAt(i);
+    activities = await DBClient.instance.getActiveActivities();
+    setState(() {
+
+    });
+  }
+
   void _handleAdd(String text) async {
     if (text.isEmpty)
       return;
@@ -112,10 +124,19 @@ class _ActivityManagerState extends State<ActivityManager> {
     int c = await DBClient.instance.getActiveActivityCount();
     Activity newActivity = Activity(
         text, ColorSpec.colorCircle[c % ColorSpec.colorCircle.length].value);
-    DBClient.instance.insertActivity(newActivity);
-    activities = await DBClient.instance.getActiveActivities();
+    int newId = await DBClient.instance.insertActivity(newActivity);
+    if (newId > 0) {
+      newActivity = await DBClient.instance.getActivityById(newId);
+      activities.add(newActivity);
+      _sortActivities();
+    }
     _textFocusNode.requestFocus();
-    setState(() {});
+    setState(() {
+    });
+  }
+
+  void _sortActivities() {
+    activities.sort((a,b) => a.name.compareTo(b.name));
   }
 
   void alert(BuildContext context, String info) {

@@ -4,13 +4,16 @@ class Activity {
   final int? id;
   final String name;
   final int color;
-  bool isActive;
+  int isActive;
 
-  Activity(this.name, this.color, [this.id, this.isActive = false]);
+  Activity(this.name, this.color, [this.id, this.isActive = 1]);
 
   bool equals(Activity other) {
     return this.name == other.name;
   }
+
+  @override
+  String toString() => '$id $name $color $isActive';
 
   Map<String, dynamic> toMap() {
     return {
