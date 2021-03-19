@@ -372,8 +372,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     for (var entry in portions.entries) {
       double percentage = entry.value.portion / totalHours * 100;
-      _data.add(entry.value);
-      //_data.add(ActivityPortion(entry.value.activity, percentage));
+      _data.add(ActivityPortion(entry.value.activity, percentage));
     }
 
     var _series = [
@@ -573,9 +572,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _getEntriesForToday() async {
-    //_entries = await DBClient.instance.getEntriesByDate(DateTime.now());
-    // TODO: REMOVE
-    _entries = await DBClient.instance.getEntriesByDateString('2021-03-18');
+    _entries = await DBClient.instance.getEntriesByDate(DateTime.now());
   }
 
   void showDebugInfo(BuildContext context) async {

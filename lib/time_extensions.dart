@@ -20,5 +20,9 @@ extension TimeUtils on TimeOfDay {
     return _timeValueNow == _timeValueOther;
   }
 
+  bool isMidnight() {
+    return (this.hour == 0 || this.hour == 24) && this.minute == 0;
+  }
+
   String display() => DateTimeUtils.timeToString(this);
 }

@@ -5,6 +5,9 @@ import 'package:flutter_eazytime/styles.dart';
 import 'data_access.dart';
 import 'data_access.dart';
 import 'data_access.dart';
+import 'styles.dart';
+import 'styles.dart';
+import 'styles.dart';
 
 class ActivityManager extends StatefulWidget {
   ActivityManager(this.activities);
@@ -42,7 +45,17 @@ class _ActivityManagerState extends State<ActivityManager> {
                     itemBuilder: (_, int i) => Dismissible(
                         key: UniqueKey(),
                         background:
-                            Flexible(child: Container(color: ColorSpec.myRed)),
+                            Flexible(child: Container(
+                              alignment: Alignment.centerLeft,
+                                padding: EdgeInsets.only(left: 8.0),
+                                color: ColorSpec.myRed,
+                              child: Text('Delete', style: NormalTextStyle()))),
+                        secondaryBackground:
+                            Flexible(child: Container(
+                                alignment: Alignment.centerRight,
+                                padding: EdgeInsets.only(right: 8.0),
+                                color: ColorSpec.myGreen,
+                                child: Text('Modify', style: NormalTextStyle()))),
                         onDismissed: (dir) => _handleDismissActivity(dir, i),
                         child: Container(
                             alignment: Alignment.centerLeft,
@@ -103,19 +116,26 @@ class _ActivityManagerState extends State<ActivityManager> {
   }
 
   void _handleDismissActivity(DismissDirection dir, int i) async {
-    Activity activityToDel = activities.elementAt(i);
-    await DBClient.instance.deleteActivity(activityToDel);
-    //activities.removeAt(i);
-    activities = await DBClient.instance.getActiveActivities();
-    setState(() {
+    if (dir == DismissDirection.startToEnd) {
+      Activity activityToDel = activities.elementAt(i);
+      await DBClient.instance.deleteActivity(activityToDel);
+      //activities.removeAt(i);
+      activities = await DBClient.instance.getActiveActivities();
+      setState(() {
 
-    });
+      });
+    } else if (dir == DismissDirection.endToStart) {
+      // modify item
+      Activity act = activities.removeAt(i);
+      _textController.text = act.name;
+      _textFocusNode.requestFocus();
+    }
   }
 
   void _handleAdd(String text) async {
     if (text.isEmpty)
       return;
-    else if (activities.any((act) => act.name == text)) {
+    if (activities.any((act) => act.name == text)) {
       alert(context, 'Activity \'$text\' already exists.');
       return;
     }

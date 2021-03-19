@@ -22,7 +22,8 @@ class ActivityEntry extends IActivityProperties {
       (start.hour * 60 + start.minute)) / 1440;
 
   @override
-  String toString() => '${this.activity.name}: '
+  String toString() => '${this.activity.name} '
+      '${this.date.month}-${this.date.day}: '
       '${start.display()} to ${end.display()} '
       '(${fractionOfDay().toStringAsFixed(2)})';
 

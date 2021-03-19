@@ -16,3 +16,10 @@ class DateTimeUtils {
   }
 
 }
+
+extension DateExt on DateTime {
+  bool isEqualTo(DateTime other) {
+    return this.year == other.year &&
+        this.month == other.month && this.day == other.day;
+  }
+}

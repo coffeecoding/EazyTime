@@ -61,6 +61,17 @@ class DBClient {
     return await db.insert('activities', activity.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,);
   }
+
+  Future<Activity?> existsActivityWithName(String name) async {
+    final Database db = await database;
+
+    List<Map<String, dynamic>> result =
+    await db.rawQuery('SELECT * FROM activities WHERE name = ?', [name]);
+
+    if (result.isNotEmpty)
+      return await getActivityByName(name);
+    return null;
+  }
   
   Future<Activity?> existsActivity(Activity activity) async {
     final Database db = await database;
