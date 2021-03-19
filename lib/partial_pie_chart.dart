@@ -28,7 +28,7 @@ class PartialPieChart extends StatelessWidget {
         animate: animate,
         defaultRenderer: new charts.ArcRendererConfig(
             arcLength: partiality * 2 * pi,
-            arcWidth: 72,
+            arcWidth: 84,
             strokeWidthPx: 0,
             arcRendererDecorators: [
               new charts.ArcLabelDecorator(

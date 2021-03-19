@@ -12,6 +12,7 @@ import 'sample_data.dart' as mysamples;
 import 'entry.dart';
 import 'entry_handler.dart';
 import 'styles.dart';
+import 'time_extensions.dart';
 
 void main() {
   runApp(EazyTime());
@@ -403,7 +404,7 @@ class _MyHomePageState extends State<MyHomePage> {
         data: _entries,
         colorFn: (ActivityEntry act, _) =>
             charts.ColorUtil.fromDartColor(Color(act.color)),
-        labelAccessorFn: (ActivityEntry act, _) => act.name,
+        labelAccessorFn: (ActivityEntry act, _) => '${act.name} (${act.start.display()})',
       )
     ];
 
@@ -459,9 +460,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Map<String, ActivityPortion> entriesToAbsolutePortions(
-      List<ActivityEntry> l) {
+      List<ActivityEntry> entries) {
     Map<String, ActivityPortion> _activityTotalsMap = {};
-    for (ActivityEntry _entry in _entries) {
+    for (ActivityEntry _entry in entries) {
       if (_activityTotalsMap.containsKey(_entry.name))
         _activityTotalsMap[_entry.name]!.portion +=
             (_entry.fractionOfDay() * 24);
