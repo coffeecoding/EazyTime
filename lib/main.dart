@@ -357,7 +357,6 @@ class _MyHomePageState extends State<MyHomePage> {
     - check if its past 00:00 AM yet there are no entries for today
     - if so then update last entry from yday and clean view for today !
    */
-
   Future<Widget> buildAllTimeChart() async {
     List<ActivityEntry> entries = await DBClient.instance.getAllEntries();
 
@@ -373,19 +372,20 @@ class _MyHomePageState extends State<MyHomePage> {
 
     for (var entry in portions.entries) {
       double percentage = entry.value.portion / totalHours * 100;
-      _data.add(ActivityPortion(entry.value.activity, percentage));
+      _data.add(entry.value);
+      //_data.add(ActivityPortion(entry.value.activity, percentage));
     }
 
     var _series = [
       charts.Series<ActivityPortion, int>(
         id: 'TotalActivity',
-        domainFn: (ActivityPortion act, _) => _activities.indexOf(act.activity),
+        domainFn: (ActivityPortion act, _) => act.activity.id,
         measureFn: (ActivityPortion act, _) => act.portion,
         data: _data,
         colorFn: (ActivityPortion act, _) =>
             charts.ColorUtil.fromDartColor(Color(act.activity.color)),
         labelAccessorFn: (ActivityPortion act, _) =>
-          '${act.activity.name} ${act.portion.toStringAsFixed(1)} %',
+        '${act.activity.name} ${act.portion.toStringAsFixed(1)} %',
       )
     ];
 
@@ -573,7 +573,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _getEntriesForToday() async {
-    _entries = await DBClient.instance.getEntriesByDate(DateTime.now());
+    //_entries = await DBClient.instance.getEntriesByDate(DateTime.now());
+    // TODO: REMOVE
+    _entries = await DBClient.instance.getEntriesByDateString('2021-03-18');
   }
 
   void showDebugInfo(BuildContext context) async {

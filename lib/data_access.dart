@@ -202,6 +202,27 @@ class DBClient {
     return result;
   }
 
+  Future<List<ActivityEntry>> getEntriesByDateString(String date) async {
+    final Database db = await database;
+
+    final List<Map<String, dynamic>> maps = await db.rawQuery('SELECT * '
+        'FROM entries INNER JOIN activities ON activities.activityId = entries.activityId '
+        'WHERE date = ?', [date]);
+
+    List<ActivityEntry> result = List.generate(maps.length, (i) {
+      return ActivityEntry(
+          Activity(maps[i]['name'], maps[i]['color'], maps[i]['activityId'], maps[i]['isActive']),
+          DateTime.parse(maps[i]['date']),
+          DateTimeUtils.parseTime(maps[i]['startTime']),
+          DateTimeUtils.parseTime(maps[i]['endTime']),
+          maps[i]['activityId'],
+          maps[i]['entryId']
+      );
+    });
+
+    return result;
+  }
+
   Future<List<ActivityEntry>> getEntriesByDate(DateTime date) async {
     final Database db = await database;
 
