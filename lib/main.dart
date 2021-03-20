@@ -13,6 +13,8 @@ import 'entry.dart';
 import 'entry_handler.dart';
 import 'styles.dart';
 import 'time_extensions.dart';
+import 'extensions.dart';
+import 'datetime_utils.dart';
 
 void main() {
   runApp(EazyTime());
@@ -104,7 +106,18 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: SizedBox(
                                 width: 500,
                                 height: 300,
-                                child: buildHistoryChart(context))),
+                                child: FutureBuilder<Widget>(
+                                    future: buildHistoryChart(),
+                                    builder:
+                                        (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+                                      if (snapshot.hasData) {
+                                        return snapshot.data!;
+                                      } else {
+                                        return Text('Retrieving data ...', style: SecondaryTextStyle(Colors.black));
+                                      }
+                                    }),
+                            ),
+                        ),
                       ),
                       Flexible(
                           flex: 1,
@@ -144,7 +157,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         Flexible(
                             flex: 1,
-                            fit: FlexFit.loose,
                             child: Container(
                               alignment: Alignment.centerLeft,
                               child: SingleChildScrollView(
@@ -195,7 +207,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           ElevatedButton(
                               onPressed: () async {
                                 await DBClient.instance
-                                    .deleteEntriesByDate(DateTime.now());
+                                    .deleteEntriesByDate(DateUtils.dateOnly(DateTime.now()));
                                 await _getEntriesForToday();
                                 await _updateActivities();
                                 setState(() {});
@@ -298,6 +310,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 }),
                 title: Text('All time statistics', style: NormalTextStyle())),
             body: Container(
+              height: 800,
               color: Colors.white,
               alignment: Alignment.center,
               child: FutureBuilder<Widget>(
@@ -346,25 +359,20 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   List<Widget> buildActivityPortionLegend(List<ActivityEntry> entries) {
-    Map<String, ActivityPortion> map = entriesToAbsolutePortions(entries);
+    Map<String, ActivityPortion> map = getPortionsByName(entries);
     return map.entries
         .map((e) => buildActivityLegendItem(e.value,
             '${e.value.name} ${(e.value.portion * 100 / 24).toStringAsFixed(1)} %'))
         .toList();
   }
 
-  /*
-    IDEA TO CHECK IF WE REACHED A NEW DAY
-    - check if its past 00:00 AM yet there are no entries for today
-    - if so then update last entry from yday and clean view for today !
-   */
   Future<Widget> buildAllTimeChart() async {
     List<ActivityEntry> entries = await DBClient.instance.getAllEntries();
 
     if (entries.isEmpty)
       return Text('No data found.', style: SecondaryTextStyle(Colors.grey));
 
-    Map<String, ActivityPortion> portions = entriesToAbsolutePortions(entries);
+    Map<String, ActivityPortion> portions = getPortionsByName(entries);
 
     double totalHours = 0.0;
     portions.forEach((key, value) { totalHours += value.portion; });
@@ -413,26 +421,55 @@ class _MyHomePageState extends State<MyHomePage> {
       passedFractionOfDay += element.fractionOfDay();
     });
 
-    return PartialPieChart(chartData, passedFractionOfDay, animate: false);
+    return PartialPieChart(chartData, passedFractionOfDay, animate: true);
   }
 
-  Widget? buildHistoryChart(BuildContext context) {
-    if (_activityHistories.isEmpty)
-      return Center(
-        child:
-            Text('No hist data found.', style: SecondaryTextStyle(Colors.grey)),
-      );
+  Future<Widget> buildHistoryChart() async {
+
+    List<ActivityEntry> allEntries = await DBClient.instance.getAllEntries();
+
+    Map<DateTime, List<ActivityEntry>> entriesByDate =
+      allEntries.groupBy<DateTime>((e) => DateUtils.dateOnly(e.date));
+
+    Map<DateTime, List<ActivityPortion>> portionsByDate = {};
+
+    entriesByDate.entries.forEach((e) {
+      Map<String, ActivityPortion> portionByName = getPortionsByName(e.value);
+      List<ActivityPortion> portions = portionByName.values.toList();
+      portionsByDate.putIfAbsent(e.key, () => portions);
+    });
+
+    List<ActivityPortion> allPortions
+      = portionsByDate.values.reduce((all, list) => all + list);
+    
+    Map<String, List<ActivityPortion>> portionSeriesByName
+      = allPortions.groupBy<String>((portion) => portion.name);
+
+    Map<String, ActivityHistory> histories = {};
+
     List<charts.Series<ActivityPortion, String>> data = [];
 
-    for (var _entry in _activityHistories.entries) {
+    for (var entry in portionSeriesByName.entries) {
       data.add(new charts.Series<ActivityPortion, String>(
-          id: _entry.key,
+        id: entry.key,
+        domainFn: (ActivityPortion act, _) => act.dateTime!.toSimpleString(),
+        measureFn: (ActivityPortion act, _) => act.portion,
+        colorFn: (ActivityPortion act, _) =>
+            charts.ColorUtil.fromDartColor(Color(act.color)),
+        data: entry.value
+      ));
+    }
+
+    /*
+    for (var entry in _activityHistories.entries) {
+      data.add(new charts.Series<ActivityPortion, String>(
+          id: entry.key,
           domainFn: (ActivityPortion act, _) => getDateDisplay(act.dateTime!),
           measureFn: (ActivityPortion act, _) => act.portion,
           colorFn: (ActivityPortion act, _) =>
-              charts.ColorUtil.fromDartColor(Color(_entry.value.color)),
-          data: _entry.value.portionSeries));
-    }
+              charts.ColorUtil.fromDartColor(Color(entry.value.color)),
+          data: entry.value.portionSeries));
+    }*/
 
     return StackedBarChart(data, animate: true);
   }
@@ -441,7 +478,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (_entries.isEmpty)
       return Text('No data found', style: SecondaryTextStyle(Colors.grey));
     Map<String, ActivityPortion> _activityTotalsMap =
-        entriesToAbsolutePortions(_entries);
+      getPortionsByName(_entries);
     List<charts.Series<ActivityPortion, String>> data = [];
 
     for (String _key in _activityTotalsMap.keys) {
@@ -459,18 +496,17 @@ class _MyHomePageState extends State<MyHomePage> {
     return StackedBarChart(data, animate: true);
   }
 
-  Map<String, ActivityPortion> entriesToAbsolutePortions(
-      List<ActivityEntry> entries) {
-    Map<String, ActivityPortion> _activityTotalsMap = {};
+  Map<String, ActivityPortion> getPortionsByName(List<ActivityEntry> entries) {
+    Map<String, ActivityPortion> _portionByName = {};
     for (ActivityEntry _entry in entries) {
-      if (_activityTotalsMap.containsKey(_entry.name))
-        _activityTotalsMap[_entry.name]!.portion +=
+      if (_portionByName.containsKey(_entry.name))
+        _portionByName[_entry.name]!.portion +=
             (_entry.fractionOfDay() * 24);
       else
-        _activityTotalsMap[_entry.name] =
-            ActivityPortion(_entry.activity, _entry.fractionOfDay() * 24);
+        _portionByName[_entry.name] =
+            ActivityPortion(_entry.activity, _entry.fractionOfDay() * 24, _entry.date);
     }
-    return _activityTotalsMap;
+    return _portionByName;
   }
 
   /// Parameter text is not necessary if we only want to display the name of
@@ -479,7 +515,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget buildActivityLegendItem(IActivityProperties activity, String text) {
     return Container(
       height: 30,
-      width: 80,
+      width: 90,
       child: Row(
         children: [
           Container(
@@ -573,7 +609,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _getEntriesForToday() async {
-    _entries = await DBClient.instance.getEntriesByDate(DateTime.now());
+    _entries = await DBClient.instance.getEntriesByDate(DateUtils.dateOnly(DateTime.now()));
   }
 
   void showDebugInfo(BuildContext context) async {
