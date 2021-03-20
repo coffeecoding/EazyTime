@@ -46,12 +46,18 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   _MyHomePageState() {
-    initData();
+    updateData(true, true);
   }
 
-  void initData() async {
-    await _updateActivities();
-    await _refreshEntries();
+  Future<void> updateData(bool updateEntries, [bool updateActivities = false]) async {
+    if (updateActivities) {
+      _activities = await DBClient.instance.getActiveActivities();
+      _activities.sort((a, b) => a.name.compareTo(b.name));
+    }
+    if (updateEntries) {
+      await EntrySwitchHandler.refreshEntries(_entries);
+      _entries = await DBClient.instance.getEntriesByDate(DateTime.now());
+    }
     setState(() {});
   }
 
@@ -209,8 +215,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 await DBClient.instance
                                     .deleteEntriesByDate(DateUtils.dateOnly(DateTime.now()));
                                 //await DBClient.instance.deleteAllActivities();
-                                await _refreshEntries();
-                                await _updateActivities();
+                                await updateData(true, true);
                                 setState(() {});
                               },
                               child: Text('CLR')),
@@ -272,11 +277,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                   await EntrySwitchHandler.handleSwitch(
                                           _entries,
                                           _selectedActivity,
-                                          _selTime, 
+                                          _selTime,
                                           DateUtils.dateOnly(DateTime.now()))
                                       .then((val) async {
-                                    await _updateActivities();
-                                    await _refreshEntries();
+                                    await updateData(true, true);
                                     setState(() {});
                                   }).catchError((e) {
                                     showError(e.toString());
@@ -341,8 +345,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   onNavigateHere(dynamic val) async {
-    await _updateActivities();
-    await _refreshEntries();
+    await updateData(true, true);
     setState(() {});
   }
 
@@ -586,19 +589,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void updateSelectedActivity(int index) {
     _selectedActivityIndex = index;
-  }
-
-  Future<void> _updateActivities() async {
-    _activities = await DBClient.instance.getActiveActivities();
-    _activities.sort((a, b) => a.name.compareTo(b.name));
-  }
-
-  Future<void> _refreshEntries() async {
-    await EntrySwitchHandler.refreshEntries(_entries);
-    _entries = await DBClient.instance.getEntriesByDate(DateTime.now());
-    setState(() {
-
-    });
   }
 
   void showDebugInfo(BuildContext context) async {
