@@ -15,8 +15,9 @@ class EntrySwitchHandler {
   /// that should happen automatically, which updates the end time of the last
   /// entry. 2) Transition between days, i.e. removing all old entries from
   /// entries list and updating first entry/ies for today.
-  static Future<void> refreshEntries(List<ActivityEntry> entries, TimeOfDay now) async {
+  static Future<void> refreshEntries(List<ActivityEntry> entries) async {
     DateTime today = DateTime.now();
+    TimeOfDay now = TimeOfDay(hour: today.hour, minute: today.minute);
 
     List<ActivityEntry> entriesBeforeToday = entries.where(
             (e) => !e.date.isEqualTo(today)).toList();
@@ -39,11 +40,12 @@ class EntrySwitchHandler {
   }
 
   /// Handles switching between activities given the current state by updating entries accordingly.
-  static Future<void> handleSwitch(List<ActivityEntry> entries, Activity newAct, TimeOfDay startTime, TimeOfDay now) async {
+  static Future<void> handleSwitch(List<ActivityEntry> entries, Activity newAct, TimeOfDay startTime) async {
     if (entries.isEmpty && startTime.isAfter(TimeOfDay(hour: 0, minute: 0)))
       throw 'First entry needs to start at 00:00.';
 
     DateTime today = DateTime.now();
+    TimeOfDay now = TimeOfDay(hour: today.hour, minute: today.minute);
 
     if (startTime.isSimultaneousTo(TimeOfDay(hour: 0, minute: 0)) || entries.isEmpty) {
       for (ActivityEntry e in entries) {

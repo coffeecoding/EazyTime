@@ -266,15 +266,13 @@ class _MyHomePageState extends State<MyHomePage> {
                                 onPressed: () async {
                                   TimeOfDay _selTime =
                                       TimeOfDay(hour: _hour, minute: _minute);
-                                  TimeOfDay _now = TimeOfDay.now();
                                   Activity _selectedActivity =
                                       _activities[_selectedActivityIndex];
 
                                   await EntrySwitchHandler.handleSwitch(
                                           _entries,
                                           _selectedActivity,
-                                          _selTime,
-                                          _now)
+                                          _selTime)
                                       .then((val) async {
                                     await _updateActivities();
                                     await _refreshEntries();
@@ -595,7 +593,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _refreshEntries() async {
-    _entries = await DBClient.instance.getEntriesByDate(DateUtils.dateOnly(DateTime.now()));
+    await EntrySwitchHandler.refreshEntries(_entries);
   }
 
   void showDebugInfo(BuildContext context) async {
