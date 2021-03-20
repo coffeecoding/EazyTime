@@ -33,6 +33,8 @@ class SampleData {
     ];
   }
 
+  // TODO Rewrite this without ActivityHistory. Simple Lists should do
+  /*
   static Map<String, ActivityHistory> getSampleHistory() {
     var hist = {
       'Sleep': ActivityHistory(getActivities()[2]),
@@ -79,5 +81,5 @@ class SampleData {
     hist['Groceries']!.add(ActivityPortion.s(getActivities()[5], 0, '2021-03-14'));
     hist['Groceries']!.add(ActivityPortion.s(getActivities()[5], 0.5, '2021-03-15'));
     return hist;
-  }
+  }*/
 }

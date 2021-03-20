@@ -52,24 +52,6 @@ class ActivityPortion extends IActivityProperties {
   int get color => activity.color;
 }
 
-class ActivityHistory {
-  final Activity activity;
-  late List<ActivityPortion> portionSeries;
-
-  ActivityHistory(this.activity) {
-    this.portionSeries = List<ActivityPortion>.empty(growable: true);
-  }
-
-  void add(ActivityPortion portion) {
-    if (portion.activity.name != this.activity.name)
-      throw 'ActivityPortion has different name than this Activityhist!';
-    portionSeries.add(portion);
-  }
-
-  String get name => activity.name;
-  int get color => activity.color;
-}
-
 String getDateDisplay(DateTime date) {
   return '${date.year.toString().substring(2)}-${date.month}-${date.day}';
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/src/material/time.dart';
 
 class DateTimeUtils {
@@ -18,9 +19,21 @@ class DateTimeUtils {
 }
 
 extension DateExt on DateTime {
-  bool isEqualTo(DateTime other) {
+  bool equalsDateOf(DateTime other) {
     return this.year == other.year &&
         this.month == other.month && this.day == other.day;
+  }
+
+  bool isAfterDayOf(DateTime other) {
+    DateTime thisDayWithoutTime = DateUtils.dateOnly(this);
+    DateTime otherDayWithoutTime = DateUtils.dateOnly(other);
+    return thisDayWithoutTime.isAfter(otherDayWithoutTime);
+  }
+
+  bool isBeforeDayOf(DateTime other) {
+    DateTime thisDayWithoutTime = DateUtils.dateOnly(this);
+    DateTime otherDayWithoutTime = DateUtils.dateOnly(other);
+    return thisDayWithoutTime.isBefore(otherDayWithoutTime);
   }
 
   String toSimpleString() => DateTimeUtils.dateToString(this);

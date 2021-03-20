@@ -56,7 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   _MyHomePageState.withSampleData() {
-    _activityHistories = mysamples.SampleData.getSampleHistory();
+    //_activityHistories = mysamples.SampleData.getSampleHistory();
     _activities = mysamples.SampleData.getActivities();
     _entries = mysamples.SampleData.getSampleEntries();
   }
@@ -71,7 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<Activity> _activities = [];
   List<ActivityEntry> _entries = [];
-  Map<String, ActivityHistory> _activityHistories = {};
+  //Map<String, ActivityHistory> _activityHistories = {};
 
   @override
   Widget build(BuildContext context) {
@@ -272,7 +272,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                   await EntrySwitchHandler.handleSwitch(
                                           _entries,
                                           _selectedActivity,
-                                          _selTime)
+                                          _selTime, 
+                                          DateUtils.dateOnly(DateTime.now()))
                                       .then((val) async {
                                     await _updateActivities();
                                     await _refreshEntries();
@@ -594,6 +595,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _refreshEntries() async {
     await EntrySwitchHandler.refreshEntries(_entries);
+    _entries = await DBClient.instance.getEntriesByDate(DateTime.now());
+    setState(() {
+
+    });
   }
 
   void showDebugInfo(BuildContext context) async {
@@ -619,7 +624,7 @@ class _MyHomePageState extends State<MyHomePage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Info'),
-            content: Text(info),
+            content: SingleChildScrollView(child: Text(info)),
             actions: [
               TextButton(
                   onPressed: () {
