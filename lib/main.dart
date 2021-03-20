@@ -51,7 +51,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void initData() async {
     await _updateActivities();
-    await _getEntriesForToday();
+    await _refreshEntries();
     setState(() {});
   }
 
@@ -209,11 +209,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                 await DBClient.instance
                                     .deleteEntriesByDate(DateUtils.dateOnly(DateTime.now()));
                                 //await DBClient.instance.deleteAllActivities();
-                                await _getEntriesForToday();
+                                await _refreshEntries();
                                 await _updateActivities();
                                 setState(() {});
                               },
-                              child: Text('CLE')),
+                              child: Text('CLR')),
+                    ]),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -276,7 +277,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           _now)
                                       .then((val) async {
                                     await _updateActivities();
-                                    await _getEntriesForToday();
+                                    await _refreshEntries();
                                     setState(() {});
                                   }).catchError((e) {
                                     showError(e.toString());
@@ -342,7 +343,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   onNavigateHere(dynamic val) async {
     await _updateActivities();
-    await _getEntriesForToday();
+    await _refreshEntries();
     setState(() {});
   }
 
@@ -593,7 +594,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _activities.sort((a, b) => a.name.compareTo(b.name));
   }
 
-  Future<void> _getEntriesForToday() async {
+  Future<void> _refreshEntries() async {
     _entries = await DBClient.instance.getEntriesByDate(DateUtils.dateOnly(DateTime.now()));
   }
 
