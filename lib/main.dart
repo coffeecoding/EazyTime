@@ -208,20 +208,12 @@ class _MyHomePageState extends State<MyHomePage> {
                               onPressed: () async {
                                 await DBClient.instance
                                     .deleteEntriesByDate(DateUtils.dateOnly(DateTime.now()));
+                                //await DBClient.instance.deleteAllActivities();
                                 await _getEntriesForToday();
                                 await _updateActivities();
                                 setState(() {});
                               },
-                              child: Text('xENT')),
-                          /*ElevatedButton(
-                              onPressed: () async {
-                                await DBClient.instance.deleteAllActivities();
-                                await _updateActivities();
-                                await _getEntriesForToday();
-                                setState(() { });
-                              },
-                              child: Text('xACT'))*/
-                        ]),
+                              child: Text('CLE')),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
