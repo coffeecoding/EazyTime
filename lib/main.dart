@@ -425,30 +425,34 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<Widget> buildHistoryChart() async {
-
+    // This method is commented as it does quite a bit of data transformation.
+    // Get all existing entries from db.
     List<ActivityEntry> allEntries = await DBClient.instance.getAllEntries();
 
+    // Group entries by date.
     Map<DateTime, List<ActivityEntry>> entriesByDate =
       allEntries.groupBy<DateTime>((e) => DateUtils.dateOnly(e.date));
 
+    // For each date, get the absolute portions for each activity.
     Map<DateTime, List<ActivityPortion>> portionsByDate = {};
-
     entriesByDate.entries.forEach((e) {
       Map<String, ActivityPortion> portionByName = getPortionsByName(e.value);
       List<ActivityPortion> portions = portionByName.values.toList();
       portionsByDate.putIfAbsent(e.key, () => portions);
     });
 
+    // Get a list of all portions from all days.
     List<ActivityPortion> allPortions
       = portionsByDate.values.reduce((all, list) => all + list);
-    
+
+    // Group list of all portions by activity name, so that we get the data in
+    // the form that charts package needs to plot the stacked bar graph. That
+    // is, for each activity, a series of portions, each associated with a date.
     Map<String, List<ActivityPortion>> portionSeriesByName
       = allPortions.groupBy<String>((portion) => portion.name);
 
-    Map<String, ActivityHistory> histories = {};
-
+    // Declare and fill the data structure needed to plot the data at hand.
     List<charts.Series<ActivityPortion, String>> data = [];
-
     for (var entry in portionSeriesByName.entries) {
       data.add(new charts.Series<ActivityPortion, String>(
         id: entry.key,
@@ -459,17 +463,6 @@ class _MyHomePageState extends State<MyHomePage> {
         data: entry.value
       ));
     }
-
-    /*
-    for (var entry in _activityHistories.entries) {
-      data.add(new charts.Series<ActivityPortion, String>(
-          id: entry.key,
-          domainFn: (ActivityPortion act, _) => getDateDisplay(act.dateTime!),
-          measureFn: (ActivityPortion act, _) => act.portion,
-          colorFn: (ActivityPortion act, _) =>
-              charts.ColorUtil.fromDartColor(Color(entry.value.color)),
-          data: entry.value.portionSeries));
-    }*/
 
     return StackedBarChart(data, animate: true);
   }
