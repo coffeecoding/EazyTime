@@ -62,8 +62,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       _activities.sort((a, b) => a.name.compareTo(b.name));
     }
     if (updateEntries) {
-      await EntrySwitchHandler.refreshEntries(_entries);
       _entries = await DBClient.instance.getEntriesByDate(DateTime.now());
+      await EntrySwitchHandler.refreshEntries(_entries);
     }
     setState(() {});
   }

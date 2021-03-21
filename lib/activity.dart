@@ -7,8 +7,8 @@ abstract class IActivityProperties {
 
 class Activity extends IActivityProperties {
   final int? id;
-  final String name;
-  final int color;
+  String name;
+  int color;
   int isActive;
 
   Activity(this.name, this.color, [this.id, this.isActive = 1]);

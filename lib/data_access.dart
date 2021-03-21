@@ -48,16 +48,6 @@ class DBClient {
   Future<int> insertActivity(Activity activity) async {
     final Database db = await database;
 
-    Activity? existingActivity = await existsActivity(activity);
-    if (existingActivity != null) {
-      if (existingActivity.isActive == 1) return existingActivity.id!;
-      else {
-        existingActivity.isActive = 1;
-        await updateActivity(existingActivity);
-        return existingActivity.id!;
-      }
-    }
-
     return await db.insert('activities', activity.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,);
   }
@@ -116,7 +106,7 @@ class DBClient {
     return Activity(map[0]['name'], map[0]['color'], map[0]['activityId'], map[0]['isActive']);
   }
 
-  Future<Activity> getActivityByName(String name) async {
+  Future<Activity?> getActivityByName(String name) async {
     final Database db = await database;
 
     List<Map<String, dynamic>> map = await db.rawQuery('SELECT * from activities WHERE name = ?', [name]);

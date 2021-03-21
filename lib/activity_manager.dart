@@ -26,6 +26,7 @@ class _ActivityManagerState extends State<ActivityManager> {
   final FocusNode _textFocusNode = FocusNode();
   List<Activity> activities;
   bool _isComposing = false;
+  Activity? cachedActivity; // used for modifying
 
   @override
   Widget build(BuildContext context) {
@@ -121,13 +122,11 @@ class _ActivityManagerState extends State<ActivityManager> {
       await DBClient.instance.deleteActivity(activityToDel);
       //activities.removeAt(i);
       activities = await DBClient.instance.getActiveActivities();
-      setState(() {
-
-      });
+      setState(() { });
     } else if (dir == DismissDirection.endToStart) {
       // modify item
-      Activity act = activities.removeAt(i);
-      _textController.text = act.name;
+      cachedActivity = activities.removeAt(i);
+      _textController.text = cachedActivity!.name;
       _textFocusNode.requestFocus();
     }
   }
@@ -139,20 +138,46 @@ class _ActivityManagerState extends State<ActivityManager> {
       alert(context, 'Activity \'$text\' already exists.');
       return;
     }
+
+    // First check if activity with this name exists in the list
+    bool existsActive = cachedActivity != null;
+    int count = await DBClient.instance.getActiveActivityCount();
+    int nextColor = ColorSpec.colorCircle[count % ColorSpec.colorCircle.length].value;
+
+    // If it exists and isActive == 0, set isActive to 1 and update its color
+    if (existsActive) {
+      // Update activity with the new name and update the color
+      cachedActivity!.name = text;
+      await DBClient.instance.updateActivity(cachedActivity!);
+      Activity updatedActivity = await DBClient.instance.getActivityById(cachedActivity!.id!);
+      activities.add(updatedActivity);
+      cachedActivity = null;
+    }
+    // Else, it doesn't exist locally, check if its inactive, otherwise add new
+    else {
+      // Check if it exists in database and is inactive
+      Activity? existingInactive = await DBClient.instance.existsActivityWithName(text);
+      if (existingInactive != null) {
+        existingInactive.isActive = 1;
+        existingInactive.color = nextColor;
+        await DBClient.instance.updateActivity(existingInactive);
+        existingInactive = await DBClient.instance.getActivityByName(text);
+        activities.add(existingInactive!);
+      }
+      // Else it doesn't even exist as inactive, so add a new one
+      else {
+        Activity newActivity = Activity(text, nextColor);
+        int newId = await DBClient.instance.insertActivity(newActivity);
+        newActivity = await DBClient.instance.getActivityById(newId);
+        activities.add(newActivity);
+      }
+    }
+
+    // Update TextInput
     _textController.clear();
     _isComposing = false;
-    int c = await DBClient.instance.getActiveActivityCount();
-    Activity newActivity = Activity(
-        text, ColorSpec.colorCircle[c % ColorSpec.colorCircle.length].value);
-    int newId = await DBClient.instance.insertActivity(newActivity);
-    if (newId > 0) {
-      newActivity = await DBClient.instance.getActivityById(newId);
-      activities.add(newActivity);
-      _sortActivities();
-    }
     _textFocusNode.requestFocus();
-    setState(() {
-    });
+    setState(() {});
   }
 
   void _sortActivities() {
