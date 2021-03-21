@@ -148,6 +148,7 @@ class _ActivityManagerState extends State<ActivityManager> {
     if (existsActive) {
       // Update activity with the new name and update the color
       cachedActivity!.name = text;
+      cachedActivity!.color = nextColor;
       await DBClient.instance.updateActivity(cachedActivity!);
       Activity updatedActivity = await DBClient.instance.getActivityById(cachedActivity!.id!);
       activities.add(updatedActivity);

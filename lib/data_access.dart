@@ -203,6 +203,15 @@ class DBClient {
     return result;
   }
 
+  Future<ActivityEntry?> getLastEntry() async {
+    final List<ActivityEntry> allEntries = await getAllEntries();
+    if (allEntries.isEmpty)
+      return null;
+
+    allEntries.sort((a,b) => a.date.compareTo(b.date));
+    return allEntries.last;
+  }
+
   Future<List<ActivityEntry>> getEntriesByDateString(String date) async {
     final Database db = await database;
 

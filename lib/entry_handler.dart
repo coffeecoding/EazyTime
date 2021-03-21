@@ -16,8 +16,6 @@ class EntrySwitchHandler {
   /// entry. 2) Transition between days, i.e. removing all old entries from
   /// entries list and updating first entry/ies for today.
   static Future<void> refreshEntries(List<ActivityEntry> entries) async {
-    if (entries.isEmpty)
-      return;
 
     DateTime today = DateTime.now();
     TimeOfDay now = TimeOfDay(hour: today.hour, minute: today.minute);
@@ -32,6 +30,20 @@ class EntrySwitchHandler {
       ActivityEntry newEntry = ActivityEntry(lastEntryBeforeToday.activity,
           today, TimeOfDay(hour: 0, minute: 0), now);
       await DBClient.instance.insertEntry(newEntry);
+    }
+
+    if (entries.isEmpty) {
+      // If entries is empty, get the last entry, for example this could be
+      // Entry 'Sleep' from the evening before, and add that activity to today
+      // starting at midnight until the current moment (now)
+      ActivityEntry? lastKnownEntry = await DBClient.instance.getLastEntry();
+      if (lastKnownEntry == null)
+        return;
+      ActivityEntry newEntry = ActivityEntry(lastKnownEntry.activity, today,
+        TimeOfDay(hour: 0, minute: 0), now);
+      await DBClient.instance.insertEntry(newEntry);
+      entries = await DBClient.instance.getEntriesByDate(today);
+      return;
     }
 
     entries = await DBClient.instance.getEntriesByDate(today);
