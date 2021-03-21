@@ -15,6 +15,7 @@ import 'styles.dart';
 import 'time_extensions.dart';
 import 'extensions.dart';
 import 'datetime_utils.dart';
+import 'dart:async';
 
 void main() {
   runApp(EazyTime());
@@ -44,9 +45,15 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   _MyHomePageState() {
     updateData(true, true);
+  }
+
+  _MyHomePageState.withSampleData() {
+    //_activityHistories = mysamples.SampleData.getSampleHistory();
+    _activities = mysamples.SampleData.getActivities();
+    _entries = mysamples.SampleData.getSampleEntries();
   }
 
   Future<void> updateData(bool updateEntries, [bool updateActivities = false]) async {
@@ -61,10 +68,19 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {});
   }
 
-  _MyHomePageState.withSampleData() {
-    //_activityHistories = mysamples.SampleData.getSampleHistory();
-    _activities = mysamples.SampleData.getActivities();
-    _entries = mysamples.SampleData.getSampleEntries();
+  Timer? _everyMinute;
+
+  @override
+  void initState() {
+    super.initState();
+    updateData(true, true);
+
+    // Periodically set State
+    _everyMinute = Timer.periodic(Duration(minutes: 1), (Timer t) async {
+      updateData(true);
+      setState(() {
+      });
+    });
   }
 
   int _hour = 0;
@@ -416,7 +432,7 @@ class _MyHomePageState extends State<MyHomePage> {
       passedFractionOfDay += element.fractionOfDay();
     });
 
-    return PartialPieChart(chartData, passedFractionOfDay, animate: true);
+    return PartialPieChart(chartData, passedFractionOfDay, animate: false);
   }
 
   Future<Widget> buildHistoryChart() async {

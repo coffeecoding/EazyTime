@@ -16,39 +16,38 @@ class EntrySwitchHandler {
   /// entry. 2) Transition between days, i.e. removing all old entries from
   /// entries list and updating first entry/ies for today.
   static Future<void> refreshEntries(List<ActivityEntry> entries) async {
+    if (entries.isEmpty)
+      return;
+
     DateTime today = DateTime.now();
     TimeOfDay now = TimeOfDay(hour: today.hour, minute: today.minute);
 
-    if (entries.isNotEmpty) {
-      List<ActivityEntry> entriesBeforeToday = entries.where(
-              (e) => !e.date.equalsDateOf(today)).toList();
-      if (entriesBeforeToday.isNotEmpty) {
-        // update entries from previous day and clear entries
-        ActivityEntry lastEntryBeforeToday = entriesBeforeToday.last;
-        lastEntryBeforeToday.end = TimeOfDay(hour: 24, minute: 0);
-        await DBClient.instance.updateEntry(lastEntryBeforeToday);
-        ActivityEntry newEntry = ActivityEntry(lastEntryBeforeToday.activity,
-            today, TimeOfDay(hour: 0, minute: 0), now);
-        await DBClient.instance.insertEntry(newEntry);
-      }
+    List<ActivityEntry> entriesBeforeToday = entries.where(
+            (e) => !e.date.equalsDateOf(today)).toList();
+    if (entriesBeforeToday.isNotEmpty) {
+      // update entries from previous day and clear entries
+      ActivityEntry lastEntryBeforeToday = entriesBeforeToday.last;
+      lastEntryBeforeToday.end = TimeOfDay(hour: 24, minute: 0);
+      await DBClient.instance.updateEntry(lastEntryBeforeToday);
+      ActivityEntry newEntry = ActivityEntry(lastEntryBeforeToday.activity,
+          today, TimeOfDay(hour: 0, minute: 0), now);
+      await DBClient.instance.insertEntry(newEntry);
     }
-    else {
-      entries = await DBClient.instance.getEntriesByDate(today);
-      ActivityEntry lastEntry = entries.last;
-      lastEntry.end = now;
-      await DBClient.instance.updateEntry(lastEntry);
-    }
+
+    entries = await DBClient.instance.getEntriesByDate(today);
+    ActivityEntry lastEntry = entries.last;
+    lastEntry.end = now;
+    await DBClient.instance.updateEntry(lastEntry);
     entries = await DBClient.instance.getEntriesByDate(today);
   }
 
   /// Handles switching between activities given the current state by updating entries accordingly.
   static Future<void> handleSwitch(List<ActivityEntry> entries, Activity newAct, TimeOfDay startTime, DateTime day) async {
-    if (entries.isEmpty && startTime.isAfter(TimeOfDay(hour: 0, minute: 0)))
-      throw 'First entry needs to start at 00:00.';
+
+    await refreshEntries(entries);
 
     DateTime today = DateTime.now();
     TimeOfDay now = TimeOfDay(hour: today.hour, minute: today.minute);
-
 
     if (day.equalsDateOf(today) && startTime.isAfter(now))
       throw 'Start time cannot be in the future!';
@@ -57,7 +56,7 @@ class EntrySwitchHandler {
       now = TimeOfDay(hour: 24, minute: 0);
     }
 
-    if (startTime.isSimultaneousTo(TimeOfDay(hour: 0, minute: 0)) || entries.isEmpty) {
+    if (entries.isEmpty || startTime.isSimultaneousTo(TimeOfDay(hour: 0, minute: 0))) {
       for (ActivityEntry e in entries) {
         await DBClient.instance.deleteEntry(e);
       }
