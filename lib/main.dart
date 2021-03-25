@@ -108,249 +108,276 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: PageView(
-        scrollDirection: Axis.horizontal,
-        controller: _pageController,
-        children: [
-          Scaffold(
-            appBar: AppBar(
-                title: Text('History', style: NormalTextStyle()),
-                actions: [
-                  IconButton(
-                      icon: Icon(Icons.arrow_forward),
-                      onPressed: () {
-                        _pageController.animateToPage(1,
-                            duration: Duration(milliseconds: 500),
-                            curve: Curves.easeOut);
-                      })
-                ]),
-            body: Container(
-                alignment: Alignment.center,
-                color: Colors.white,
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Flexible(
-                        flex: 2,
-                        child: SingleChildScrollView(
-                          controller: _histChartScroller,
-                          scrollDirection: Axis.horizontal,
-                          child: SizedBox(
-                            width: historyChartBarCount * 100,
-                            height: 300,
-                            child: FutureBuilder<Widget>(
-                                future: buildHistoryChart(),
-                                builder: (BuildContext context,
-                                    AsyncSnapshot<Widget> snapshot) {
-                                  if (snapshot.hasData) {
-                                    return snapshot.data!;
-                                  } else {
-                                    return Text('Retrieving data ...',
-                                        style:
-                                            SecondaryTextStyle(Colors.black));
-                                  }
-                                }),
-                          ),
-                        ),
-                      ),
-                      Flexible(
-                          flex: 1,
-                          child:
-                              Wrap(children: buildActivityLegend(_activities)))
-                    ])),
-          ),
-          Column(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Today', style: NormalTextStyle()),
+          backgroundColor: Colors.black,
+        ),
+        drawer: Drawer(
+          child: ListView(
             children: [
-              Flexible(
-                  child: DefaultTabController(
-                length: 2,
-                child: Scaffold(
-                  appBar: AppBar(
-                    backgroundColor: Colors.black,
-                    title: TabBar(tabs: [
-                      Tab(icon: Icon(Icons.album)),
-                      Tab(icon: Icon(Icons.bar_chart)),
-                    ]),
-                  ),
-                  body: TabBarView(
-                    children: [
-                      Container(
-                          alignment: Alignment.center,
-                          child: Padding(
-                              padding: EdgeInsets.all(32.0),
-                              child: Center(child: buildEntryChart(context)))),
-                      Row(children: [
+              DrawerHeader(child: Center(
+                child: Text('Yo whaddup', style: NormalTextStyle(Colors.black)),
+              )),
+              ListTile(title: Text('Today', style: NormalTextStyle(Colors.black))),
+              Divider(),
+              ListTile(title: Text('Help', style: NormalTextStyle(Colors.black))),
+              Divider(),
+              ListTile(title: Text('Check for updates', style: NormalTextStyle(Colors.black))),
+              Divider(),
+              ListTile(title: Text('About', style: NormalTextStyle(Colors.black))),
+            ],
+          ),
+        ),
+        body: PageView(
+          scrollDirection: Axis.horizontal,
+          controller: _pageController,
+          children: [
+            Scaffold(
+              appBar: AppBar(
+                  title: Text('History', style: NormalTextStyle(Colors.black)),
+                  backgroundColor: Colors.white,
+                  actions: [
+                    IconButton(
+                        icon: Icon(Icons.arrow_forward),
+                        onPressed: () {
+                          _pageController.animateToPage(1,
+                              duration: Duration(milliseconds: 500),
+                              curve: Curves.easeOut);
+                        })
+                  ]),
+              body: Container(
+                  alignment: Alignment.center,
+                  color: Colors.white,
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
                         Flexible(
                           flex: 2,
-                          child: Container(
-                              alignment: Alignment.center,
-                              child: Padding(
-                                  padding: EdgeInsets.all(16.0),
-                                  child: Center(
-                                      child: buildStackedChart(context)))),
+                          child: SingleChildScrollView(
+                            controller: _histChartScroller,
+                            scrollDirection: Axis.horizontal,
+                            child: SizedBox(
+                              width: historyChartBarCount * 100,
+                              height: 300,
+                              child: FutureBuilder<Widget>(
+                                  future: buildHistoryChart(),
+                                  builder: (BuildContext context,
+                                      AsyncSnapshot<Widget> snapshot) {
+                                    if (snapshot.hasData) {
+                                      return snapshot.data!;
+                                    } else {
+                                      return Text('Retrieving data ...',
+                                          style:
+                                              SecondaryTextStyle(Colors.black));
+                                    }
+                                  }),
+                            ),
+                          ),
                         ),
                         Flexible(
                             flex: 1,
-                            child: Container(
-                              alignment: Alignment.centerLeft,
-                              child: SingleChildScrollView(
-                                  child: Column(
-                                      children: buildActivityPortionLegend(
-                                          _entries))),
-                            ))
+                            child:
+                                Wrap(children: buildActivityLegend(_activities)))
+                      ])),
+            ),
+            Column(
+              children: [
+                Flexible(
+                    child: DefaultTabController(
+                  length: 2,
+                  child: Scaffold(
+                    appBar: AppBar(
+                      backgroundColor: Colors.black,
+                      title: TabBar(tabs: [
+                        Tab(icon: Icon(Icons.album)),
+                        Tab(icon: Icon(Icons.bar_chart)),
                       ]),
+                    ),
+                    body: TabBarView(
+                      children: [
+                        Container(
+                            alignment: Alignment.center,
+                            child: Padding(
+                                padding: EdgeInsets.all(32.0),
+                                child: Center(child: buildEntryChart(context)))),
+                        Row(children: [
+                          Flexible(
+                            flex: 2,
+                            child: Container(
+                                alignment: Alignment.center,
+                                child: Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: Center(
+                                        child: buildStackedChart(context)))),
+                          ),
+                          Flexible(
+                              flex: 1,
+                              child: Container(
+                                alignment: Alignment.centerLeft,
+                                child: SingleChildScrollView(
+                                    child: Column(
+                                        children: buildActivityPortionLegend(
+                                            _entries))),
+                              ))
+                        ]),
+                      ],
+                    ),
+                  ),
+                )),
+                Flexible(
+                  child: Column(
+                    children: [
+                      Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              height: 80,
+                              padding: EdgeInsets.symmetric(horizontal: 8.0),
+                              child: buildStartTime(context),
+                            ),
+                            TextButton(
+                                child: Text('Set', style: ButtonTextStyle()),
+                                onPressed: () async {
+                                  TimeOfDay? picked = await showTimePicker(
+                                      context: context,
+                                      initialTime: TimeOfDay.now());
+                                  if (picked == null) return;
+                                  _hour = picked.hour;
+                                  _minute = picked.minute;
+                                  setState(() {});
+                                }),
+                            ElevatedButton(
+                                onPressed: () {
+                                  TimeOfDay time = TimeOfDay.now();
+                                  _hour = time.hour;
+                                  _minute = time.minute;
+                                  setState(() {});
+                                },
+                                child: Text('Now', style: ButtonTextStyle())),
+                            ElevatedButton(
+                                onPressed: () {
+                                  showDebugInfo(context);
+                                  showInfo(lastSwitchDebugLog);
+                                },
+                                child: Text('DBG')),
+                            ElevatedButton(
+                                onPressed: () async {
+                                  await DBClient.instance.deleteEntriesByDate(
+                                      DateUtils.dateOnly(DateTime.now()));
+                                  //await DBClient.instance.deleteAllActivities();
+                                  await updateData(true, true);
+                                },
+                                child: Text('CLR')),
+                          ]),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Center(
+                              child: TextButton(
+                                  onPressed: () {
+                                    _pageController.animateToPage(0,
+                                        duration: Duration(milliseconds: 500),
+                                        curve: Curves.ease);
+                                  },
+                                  child: Icon(Icons.arrow_back_ios,
+                                      color: Colors.white24))),
+                          LimitedBox(
+                            maxHeight: 200,
+                            maxWidth: 200,
+                            child: buildActivityList(context),
+                          ),
+                          Center(
+                              child: TextButton(
+                                  onPressed: () {
+                                    _pageController.animateToPage(2,
+                                        duration: Duration(milliseconds: 500),
+                                        curve: Curves.ease);
+                                  },
+                                  child: Icon(Icons.arrow_forward_ios,
+                                      color: Colors.white24))),
+                        ],
+                      ),
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            TextButton(
+                                child: Text('My Activities',
+                                    style: ButtonTextStyle()),
+                                onPressed: () => {
+                                      Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ActivityManager(
+                                                          _activities)))
+                                          .then(onNavigateHere)
+                                    }),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              child: ElevatedButton(
+                                  onPressed: () async {
+                                    TimeOfDay _selTime =
+                                        TimeOfDay(hour: _hour, minute: _minute);
+                                    Activity _selectedActivity =
+                                        _activities[_selectedActivityIndex];
+
+                                    await EntrySwitchHandler.handleSwitch(
+                                            _entries,
+                                            _selectedActivity,
+                                            _selTime,
+                                            DateUtils.dateOnly(DateTime.now()))
+                                        .then((val) async {
+                                      lastSwitchDebugLog = val;
+                                      await updateData(true, true);
+                                    }).catchError((e) {
+                                      showInfo(e.toString());
+                                    });
+                                  },
+                                  child:
+                                      Text('Switch', style: ButtonTextStyle())),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              )),
-              Flexible(
-                child: Column(
-                  children: [
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            height: 80,
-                            padding: EdgeInsets.symmetric(horizontal: 8.0),
-                            child: buildStartTime(context),
-                          ),
-                          TextButton(
-                              child: Text('Set', style: ButtonTextStyle()),
-                              onPressed: () async {
-                                TimeOfDay? picked = await showTimePicker(
-                                    context: context,
-                                    initialTime: TimeOfDay.now());
-                                if (picked == null) return;
-                                _hour = picked.hour;
-                                _minute = picked.minute;
-                                setState(() {});
-                              }),
-                          ElevatedButton(
-                              onPressed: () {
-                                TimeOfDay time = TimeOfDay.now();
-                                _hour = time.hour;
-                                _minute = time.minute;
-                                setState(() {});
-                              },
-                              child: Text('Now', style: ButtonTextStyle())),
-                          ElevatedButton(
-                              onPressed: () {
-                                showDebugInfo(context);
-                                showInfo(lastSwitchDebugLog);
-                              },
-                              child: Text('DBG')),
-                          ElevatedButton(
-                              onPressed: () async {
-                                await DBClient.instance.deleteEntriesByDate(
-                                    DateUtils.dateOnly(DateTime.now()));
-                                //await DBClient.instance.deleteAllActivities();
-                                await updateData(true, true);
-                              },
-                              child: Text('CLR')),
-                        ]),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Center(
-                            child: TextButton(
-                                onPressed: () {
-                                  _pageController.animateToPage(0,
-                                      duration: Duration(milliseconds: 500),
-                                      curve: Curves.ease);
-                                },
-                                child: Icon(Icons.arrow_back_ios,
-                                    color: Colors.white24))),
-                        LimitedBox(
-                          maxHeight: 200,
-                          maxWidth: 200,
-                          child: buildActivityList(context),
-                        ),
-                        Center(
-                            child: TextButton(
-                                onPressed: () {
-                                  _pageController.animateToPage(2,
-                                      duration: Duration(milliseconds: 500),
-                                      curve: Curves.ease);
-                                },
-                                child: Icon(Icons.arrow_forward_ios,
-                                    color: Colors.white24))),
-                      ],
-                    ),
-                    Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          TextButton(
-                              child: Text('My Activities',
-                                  style: ButtonTextStyle()),
-                              onPressed: () => {
-                                    Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    ActivityManager(
-                                                        _activities)))
-                                        .then(onNavigateHere)
-                                  }),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 10.0),
-                            child: ElevatedButton(
-                                onPressed: () async {
-                                  TimeOfDay _selTime =
-                                      TimeOfDay(hour: _hour, minute: _minute);
-                                  Activity _selectedActivity =
-                                      _activities[_selectedActivityIndex];
-
-                                  await EntrySwitchHandler.handleSwitch(
-                                          _entries,
-                                          _selectedActivity,
-                                          _selTime,
-                                          DateUtils.dateOnly(DateTime.now()))
-                                      .then((val) async {
-                                    lastSwitchDebugLog = val;
-                                    await updateData(true, true);
-                                  }).catchError((e) {
-                                    showInfo(e.toString());
-                                  });
-                                },
-                                child:
-                                    Text('Switch', style: ButtonTextStyle())),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          Scaffold(
-            appBar: AppBar(
-                leading: BackButton(onPressed: () {
-                  _pageController.animateToPage(1,
-                      duration: Duration(milliseconds: 500),
-                      curve: Curves.easeOut);
-                }),
-                title: Text('All time statistics', style: NormalTextStyle())),
-            body: Container(
-              height: 800,
-              color: Colors.white,
-              alignment: Alignment.center,
-              child: FutureBuilder<Widget>(
-                  future: buildAllTimeChart(),
-                  builder:
-                      (BuildContext context, AsyncSnapshot<Widget> snapshot) {
-                    if (snapshot.hasData) {
-                      return snapshot.data!;
-                    } else {
-                      return Text('Retrieving data ...',
-                          style: SecondaryTextStyle(Colors.black));
-                    }
-                  }),
+              ],
             ),
-          ),
-        ],
+            Scaffold(
+              appBar: AppBar(
+                  leading: BackButton(
+                    color: Colors.black,
+                      onPressed: () {
+                    _pageController.animateToPage(1,
+                        duration: Duration(milliseconds: 500),
+                        curve: Curves.easeOut);
+                  }),
+                  title: Text('All time statistics', style: NormalTextStyle(Colors.black)),
+                  backgroundColor: Colors.white,
+              ),
+              body: Container(
+                height: 800,
+                color: Colors.white,
+                alignment: Alignment.center,
+                child: FutureBuilder<Widget>(
+                    future: buildAllTimeChart(),
+                    builder:
+                        (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+                      if (snapshot.hasData) {
+                        return snapshot.data!;
+                      } else {
+                        return Text('Retrieving data ...',
+                            style: SecondaryTextStyle(Colors.black));
+                      }
+                    }),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
