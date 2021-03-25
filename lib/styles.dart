@@ -51,6 +51,16 @@ class SmallSpacedTextStyle extends TextStyle {
   );
 }
 
+class SmallTextStyle extends TextStyle {
+  SmallTextStyle() : super(
+      color: Colors.black,
+      fontSize: 12.0,
+      decoration: TextDecoration.none,
+      fontFamily: 'Roboto',
+      fontWeight: FontWeight.w300
+  );
+}
+
 class LegendTextStyle extends TextStyle {
   LegendTextStyle([Color color = Colors.white]) : super(
       color: color,

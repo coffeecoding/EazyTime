@@ -23,7 +23,7 @@ class EntrySwitchHandler {
 
     List<ActivityEntry> entriesBeforeToday = entries.where(
             (e) => !e.date.equalsDateOf(today)).toList();
-    debugLog += ' Queried entriesBeforeToday{${entriesBeforeToday.length}\n';
+    debugLog += ' Queried entriesBeforeToday{${entriesBeforeToday.length}}\n';
 
     if (entriesBeforeToday.isNotEmpty) {
       // update entries from previous day and clear entries
@@ -55,14 +55,19 @@ class EntrySwitchHandler {
     ActivityEntry lastEntry = entries.last;
     lastEntry.end = now;
     await DBClient.instance.updateEntry(lastEntry);
+    debugLog += ' Updated last ${lastEntry.toString()}\n';
     entries = await DBClient.instance.getEntriesByDate(today);
-    debugLog += ' Updated last ${lastEntry.toString()} and entries=EntriesBy(today)\n';
+    debugLog += ' Refreshed entriesBy(today){${entries.length}}\n';
     return debugLog;
   }
 
   /// Handles switching between activities given the current state by updating entries accordingly.
   static Future<String> handleSwitch(List<ActivityEntry> entries, Activity newAct, TimeOfDay startTime, DateTime day) async {
     String debugLog = 'Entered handleSwitch(entries{${entries.length}}\n';
+    debugLog += ' Parameters:\n';
+    debugLog += ' newAct = ${newAct.toString()}\n';
+    debugLog += ' startTime = ${startTime.display()}\n';
+    debugLog += ' day = ${day.toSimpleString()}\n';
     debugLog += await refreshEntries(entries);
 
     DateTime today = DateTime.now();

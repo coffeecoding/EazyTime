@@ -56,7 +56,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     _entries = mysamples.SampleData.getSampleEntries();
   }
 
-  Future<void> updateData(bool updateEntries, [bool updateActivities = false]) async {
+  Future<void> updateData(bool updateEntries,
+      [bool updateActivities = false]) async {
     if (updateActivities) {
       _activities = await DBClient.instance.getActiveActivities();
       _activities.sort((a, b) => a.name.compareTo(b.name));
@@ -74,12 +75,17 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     updateData(true, true);
+    if (_entries.isNotEmpty) {
+      _hour = _entries.last.start.hour;
+      _minute = _entries.last.start.minute;
+      setState(() {
+      });
+    }
 
     // Periodically set State
     _everyMinute = Timer.periodic(Duration(minutes: 1), (Timer t) async {
       updateData(true);
-      setState(() {
-      });
+      setState(() {});
     });
   }
 
@@ -90,9 +96,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   PageController _pageController = PageController(initialPage: 1);
   ScrollController _histChartScroller =
       ScrollController(keepScrollOffset: true);
+  int historyChartBarCount = 0;
 
   List<Activity> _activities = [];
   List<ActivityEntry> _entries = [];
+
+  String lastSwitchDebugLog = "";
+
   //Map<String, ActivityHistory> _activityHistories = {};
 
   @override
@@ -123,22 +133,24 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                       Flexible(
                         flex: 2,
                         child: SingleChildScrollView(
-                            controller: _histChartScroller,
-                            scrollDirection: Axis.horizontal,
-                            child: SizedBox(
-                                width: 500,
-                                height: 300,
-                                child: FutureBuilder<Widget>(
-                                    future: buildHistoryChart(),
-                                    builder:
-                                        (BuildContext context, AsyncSnapshot<Widget> snapshot) {
-                                      if (snapshot.hasData) {
-                                        return snapshot.data!;
-                                      } else {
-                                        return Text('Retrieving data ...', style: SecondaryTextStyle(Colors.black));
-                                      }
-                                    }),
-                            ),
+                          controller: _histChartScroller,
+                          scrollDirection: Axis.horizontal,
+                          child: SizedBox(
+                            width: historyChartBarCount * 100,
+                            height: 300,
+                            child: FutureBuilder<Widget>(
+                                future: buildHistoryChart(),
+                                builder: (BuildContext context,
+                                    AsyncSnapshot<Widget> snapshot) {
+                                  if (snapshot.hasData) {
+                                    return snapshot.data!;
+                                  } else {
+                                    return Text('Retrieving data ...',
+                                        style:
+                                            SecondaryTextStyle(Colors.black));
+                                  }
+                                }),
+                          ),
                         ),
                       ),
                       Flexible(
@@ -224,18 +236,18 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                           ElevatedButton(
                               onPressed: () {
                                 showDebugInfo(context);
+                                showInfo(lastSwitchDebugLog);
                               },
                               child: Text('DBG')),
                           ElevatedButton(
                               onPressed: () async {
-                                await DBClient.instance
-                                    .deleteEntriesByDate(DateUtils.dateOnly(DateTime.now()));
+                                await DBClient.instance.deleteEntriesByDate(
+                                    DateUtils.dateOnly(DateTime.now()));
                                 //await DBClient.instance.deleteAllActivities();
                                 await updateData(true, true);
-                                setState(() {});
                               },
                               child: Text('CLR')),
-                    ]),
+                        ]),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -290,19 +302,17 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                                   Activity _selectedActivity =
                                       _activities[_selectedActivityIndex];
 
-                                  String? log = await EntrySwitchHandler.handleSwitch(
+                                  await EntrySwitchHandler.handleSwitch(
                                           _entries,
                                           _selectedActivity,
                                           _selTime,
                                           DateUtils.dateOnly(DateTime.now()))
                                       .then((val) async {
+                                    lastSwitchDebugLog = val;
                                     await updateData(true, true);
-                                    setState(() {});
                                   }).catchError((e) {
                                     showInfo(e.toString());
                                   });
-
-                                  showInfo(log!);
                                 },
                                 child:
                                     Text('Switch', style: ButtonTextStyle())),
@@ -334,7 +344,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                     if (snapshot.hasData) {
                       return snapshot.data!;
                     } else {
-                      return Text('Retrieving data ...', style: SecondaryTextStyle(Colors.black));
+                      return Text('Retrieving data ...',
+                          style: SecondaryTextStyle(Colors.black));
                     }
                   }),
             ),
@@ -350,7 +361,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Info'),
-            content: SingleChildScrollView(child: Text(text)),
+            content: SingleChildScrollView(child: Text(text, style: SmallTextStyle(),)),
             actions: [
               ElevatedButton(
                   onPressed: () {
@@ -388,7 +399,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     Map<String, ActivityPortion> portions = getPortionsByName(entries);
 
     double totalHours = 0.0;
-    portions.forEach((key, value) { totalHours += value.portion; });
+    portions.forEach((key, value) {
+      totalHours += value.portion;
+    });
 
     List<ActivityPortion> _data = [];
 
@@ -406,7 +419,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         colorFn: (ActivityPortion act, _) =>
             charts.ColorUtil.fromDartColor(Color(act.activity.color)),
         labelAccessorFn: (ActivityPortion act, _) =>
-        '${act.activity.name} ${act.portion.toStringAsFixed(1)} %',
+            '${act.activity.name} ${act.portion.toStringAsFixed(1)} %',
       )
     ];
 
@@ -425,7 +438,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         data: _entries,
         colorFn: (ActivityEntry act, _) =>
             charts.ColorUtil.fromDartColor(Color(act.color)),
-        labelAccessorFn: (ActivityEntry act, _) => '${act.name} (${act.start.display()})',
+        labelAccessorFn: (ActivityEntry act, _) =>
+            '${act.name} (${act.start.display()})',
       )
     ];
 
@@ -444,7 +458,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
     // Group entries by date.
     Map<DateTime, List<ActivityEntry>> entriesByDate =
-      allEntries.groupBy<DateTime>((e) => DateUtils.dateOnly(e.date));
+        allEntries.groupBy<DateTime>((e) => DateUtils.dateOnly(e.date));
 
     // For each date, get the absolute portions for each activity.
     Map<DateTime, List<ActivityPortion>> portionsByDate = {};
@@ -455,26 +469,28 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     });
 
     // Get a list of all portions from all days.
-    List<ActivityPortion> allPortions
-      = portionsByDate.values.reduce((all, list) => all + list);
+    List<ActivityPortion> allPortions =
+        portionsByDate.values.reduce((all, list) => all + list);
 
     // Group list of all portions by activity name, so that we get the data in
     // the form that charts package needs to plot the stacked bar graph. That
     // is, for each activity, a series of portions, each associated with a date.
-    Map<String, List<ActivityPortion>> portionSeriesByName
-      = allPortions.groupBy<String>((portion) => portion.name);
+    Map<String, List<ActivityPortion>> portionSeriesByName =
+        allPortions.groupBy<String>((portion) => portion.name);
+
+    // Update hist chart bar count
+    historyChartBarCount = portionSeriesByName.keys.length;
 
     // Declare and fill the data structure needed to plot the data at hand.
     List<charts.Series<ActivityPortion, String>> data = [];
     for (var entry in portionSeriesByName.entries) {
       data.add(new charts.Series<ActivityPortion, String>(
-        id: entry.key,
-        domainFn: (ActivityPortion act, _) => act.dateTime!.toSimpleString(),
-        measureFn: (ActivityPortion act, _) => act.portion,
-        colorFn: (ActivityPortion act, _) =>
-            charts.ColorUtil.fromDartColor(Color(act.color)),
-        data: entry.value
-      ));
+          id: entry.key,
+          domainFn: (ActivityPortion act, _) => act.dateTime!.toSimpleString(),
+          measureFn: (ActivityPortion act, _) => act.portion,
+          colorFn: (ActivityPortion act, _) =>
+              charts.ColorUtil.fromDartColor(Color(act.color)),
+          data: entry.value));
     }
 
     return StackedBarChart(data, animate: true);
@@ -484,7 +500,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     if (_entries.isEmpty)
       return Text('No data found', style: SecondaryTextStyle(Colors.grey));
     Map<String, ActivityPortion> _activityTotalsMap =
-      getPortionsByName(_entries);
+        getPortionsByName(_entries);
     List<charts.Series<ActivityPortion, String>> data = [];
 
     for (String _key in _activityTotalsMap.keys) {
@@ -506,11 +522,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     Map<String, ActivityPortion> _portionByName = {};
     for (ActivityEntry _entry in entries) {
       if (_portionByName.containsKey(_entry.name))
-        _portionByName[_entry.name]!.portion +=
-            (_entry.fractionOfDay() * 24);
+        _portionByName[_entry.name]!.portion += (_entry.fractionOfDay() * 24);
       else
-        _portionByName[_entry.name] =
-            ActivityPortion(_entry.activity, _entry.fractionOfDay() * 24, _entry.date);
+        _portionByName[_entry.name] = ActivityPortion(
+            _entry.activity, _entry.fractionOfDay() * 24, _entry.date);
     }
     return _portionByName;
   }
