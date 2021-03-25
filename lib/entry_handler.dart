@@ -15,13 +15,16 @@ class EntrySwitchHandler {
   /// that should happen automatically, which updates the end time of the last
   /// entry. 2) Transition between days, i.e. removing all old entries from
   /// entries list and updating first entry/ies for today.
-  static Future<void> refreshEntries(List<ActivityEntry> entries) async {
+  static Future<String> refreshEntries(List<ActivityEntry> entries) async {
+    String debugLog = 'Entered refreshEntries(entries{${entries.length}})\n';
 
     DateTime today = DateTime.now();
     TimeOfDay now = TimeOfDay(hour: today.hour, minute: today.minute);
 
     List<ActivityEntry> entriesBeforeToday = entries.where(
             (e) => !e.date.equalsDateOf(today)).toList();
+    debugLog += ' Queried entriesBeforeToday{${entriesBeforeToday.length}\n';
+
     if (entriesBeforeToday.isNotEmpty) {
       // update entries from previous day and clear entries
       ActivityEntry lastEntryBeforeToday = entriesBeforeToday.last;
@@ -30,6 +33,7 @@ class EntrySwitchHandler {
       ActivityEntry newEntry = ActivityEntry(lastEntryBeforeToday.activity,
           today, TimeOfDay(hour: 0, minute: 0), now);
       await DBClient.instance.insertEntry(newEntry);
+      debugLog += ' Updated entriesBeforeToday, added new ${newEntry.toString()}\n';
     }
 
     if (entries.isEmpty) {
@@ -38,12 +42,13 @@ class EntrySwitchHandler {
       // starting at midnight until the current moment (now)
       ActivityEntry? lastKnownEntry = await DBClient.instance.getLastEntry();
       if (lastKnownEntry == null)
-        return;
+        return debugLog;
       ActivityEntry newEntry = ActivityEntry(lastKnownEntry.activity, today,
         TimeOfDay(hour: 0, minute: 0), now);
       await DBClient.instance.insertEntry(newEntry);
       entries = await DBClient.instance.getEntriesByDate(today);
-      return;
+      debugLog += ' Added new ${newEntry.toString()} and entries=EntriesBy(today)\n';
+      return debugLog;
     }
 
     entries = await DBClient.instance.getEntriesByDate(today);
@@ -51,12 +56,14 @@ class EntrySwitchHandler {
     lastEntry.end = now;
     await DBClient.instance.updateEntry(lastEntry);
     entries = await DBClient.instance.getEntriesByDate(today);
+    debugLog += ' Updated last ${lastEntry.toString()} and entries=EntriesBy(today)\n';
+    return debugLog;
   }
 
   /// Handles switching between activities given the current state by updating entries accordingly.
-  static Future<void> handleSwitch(List<ActivityEntry> entries, Activity newAct, TimeOfDay startTime, DateTime day) async {
-
-    await refreshEntries(entries);
+  static Future<String> handleSwitch(List<ActivityEntry> entries, Activity newAct, TimeOfDay startTime, DateTime day) async {
+    String debugLog = 'Entered handleSwitch(entries{${entries.length}}\n';
+    debugLog += await refreshEntries(entries);
 
     DateTime today = DateTime.now();
     TimeOfDay now = TimeOfDay(hour: today.hour, minute: today.minute);
@@ -75,7 +82,8 @@ class EntrySwitchHandler {
       ActivityEntry newEntry = ActivityEntry(newAct, day, startTime, now);
       await DBClient.instance.insertEntry(newEntry);
       entries = await DBClient.instance.getEntriesByDate(day);
-      return;
+      debugLog += ' Added new ${newEntry.toString()} and entries=EntriesBy(today)\n';
+      return debugLog;
     }
 
     int idx = idxOfEntryStartingAfterAndEndingTheLatestAt(startTime, entries);
@@ -83,61 +91,85 @@ class EntrySwitchHandler {
     ActivityEntry lastEntry = entries.last;
 
     if (startTime.isBefore(lastEntry.start)) {
+      debugLog += ' start < last.start\n';
       ActivityEntry affectedEntry = entries[idx];
       affectedEntry.end = startTime;
       await DBClient.instance.updateEntry(affectedEntry);
       await removeAllAfterIndex(idx, entries);
       ActivityEntry newEntry = ActivityEntry(newAct, day, startTime, now);
       await DBClient.instance.insertEntry(newEntry);
+      debugLog += ' Added new ${newEntry.toString()}\n';
     }
 
     else if (startTime.isSimultaneousTo(lastEntry.start)) {
+      debugLog += ' start == last.start\n';
       if (newAct.equals(lastEntry.activity)) {
+        debugLog += ' newAct == last.act\n';
         lastEntry.end = now;
         await DBClient.instance.updateEntry(lastEntry);
+        debugLog += ' Updated last ${lastEntry.toString()}\n';
       }
       else {
+        debugLog += ' newAct != last.act\n';
         await DBClient.instance.deleteEntry(lastEntry);
         ActivityEntry newEntry = ActivityEntry(newAct, day, startTime, now);
         await DBClient.instance.insertEntry(newEntry);
+        debugLog += ' Deleted last ${lastEntry.toString()}\n';
+        debugLog += ' Added new ${newEntry.toString()}\n';
       }
     }
 
     else if (startTime.isBefore(lastEntry.end)) {
+      debugLog += ' start < last.end\n';
       // due to the previous else case this case intentionally becomes:
       // startTime.isAfter(lastEntry.start) && startTime.isBefore(lastEntry.end)
       if (newAct.equals(lastEntry.activity)) {
+        debugLog += ' newAct == last.act\n';
         if (entries.length > 1) {
+          debugLog += ' entries.length > 1\n';
           ActivityEntry secondLastEntry = entries.elementAt(idxLast-1);
           secondLastEntry.end = startTime;
           await DBClient.instance.updateEntry(secondLastEntry);
           lastEntry.start = startTime;
+          debugLog += ' Updated secondLast ${secondLastEntry.toString()}\n';
         }
         lastEntry.end = now;
         await DBClient.instance.updateEntry(lastEntry);
+        debugLog += ' Updated last ${lastEntry.toString()}\n';
       }
       else {
+        debugLog += ' newAct != last.act\n';
         lastEntry.end = startTime;
         await DBClient.instance.updateEntry(lastEntry);
+        debugLog += ' Updated last ${lastEntry.toString()}\n';
         ActivityEntry newEntry = ActivityEntry(newAct, day, startTime, now);
         await DBClient.instance.insertEntry(newEntry);
+        debugLog += ' Added new ${newEntry.toString()}\n';
       }
     }
 
     else if (startTime.isSimultaneousTo(lastEntry.end) ||
         startTime.isAfter(lastEntry.end)) {
+      debugLog += ' start == last.end || start > last.end\n';
       if (newAct.equals(lastEntry.activity)) {
+        debugLog += ' newAct == last.act\n';
         lastEntry.end = now;
         await DBClient.instance.updateEntry(lastEntry);
+        debugLog += ' Updated last ${lastEntry.toString()}\n';
       }
       else {
+        debugLog += ' newAct != last.act\n';
         lastEntry.end = startTime;
         await DBClient.instance.updateEntry(lastEntry);
+        debugLog += ' Updated last ${lastEntry.toString()}\n';
         ActivityEntry newEntry = ActivityEntry(newAct, day, startTime, now);
         await DBClient.instance.insertEntry(newEntry);
+        debugLog += ' Added new ${newEntry.toString()}\n';
       }
     }
     entries = await DBClient.instance.getEntriesByDate(day);
+    debugLog += ' Refreshed entriesBy(today){${entries.length}}\n';
+    return debugLog;
   }
 
   static int idxOfEntryStartingAfterAndEndingTheLatestAt(TimeOfDay time, List<ActivityEntry> entries) {

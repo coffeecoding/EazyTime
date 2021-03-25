@@ -290,7 +290,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                                   Activity _selectedActivity =
                                       _activities[_selectedActivityIndex];
 
-                                  await EntrySwitchHandler.handleSwitch(
+                                  String? log = await EntrySwitchHandler.handleSwitch(
                                           _entries,
                                           _selectedActivity,
                                           _selTime,
@@ -299,8 +299,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                                     await updateData(true, true);
                                     setState(() {});
                                   }).catchError((e) {
-                                    showError(e.toString());
+                                    showInfo(e.toString());
                                   });
+
+                                  showInfo(log!);
                                 },
                                 child:
                                     Text('Switch', style: ButtonTextStyle())),
@@ -342,13 +344,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     );
   }
 
-  void showError(String text) {
+  void showInfo(String text) {
     showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Info'),
-            content: Text(text),
+            content: SingleChildScrollView(child: Text(text)),
             actions: [
               ElevatedButton(
                   onPressed: () {
