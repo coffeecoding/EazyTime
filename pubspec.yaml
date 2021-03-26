@@ -28,6 +28,8 @@ dependencies:
   # path provides functions to define the location for storing the database on disk
   path: any
 
+  shared_preferences: ^2.0.5
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2

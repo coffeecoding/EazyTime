@@ -25,9 +25,36 @@ class EazyTime extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'EasyTimetracker',
       theme:
-          ThemeData(primarySwatch: Colors.blue, backgroundColor: Colors.white),
+          ThemeData(
+            textTheme: TextTheme(
+              bodyText1: PrimaryTextStyle(Colors.black),
+              bodyText2: NormalTextStyle(Colors.black),
+              caption: ButtonTextStyle(Colors.black),
+              headline1: SmallTextStyle(Colors.black),
+              headline2: SecondaryTextStyle(Colors.black),
+              headline3: SmallSpacedTextStyle(Colors.black),
+              headline4: LegendTextStyle(Colors.black),
+            ),
+              primarySwatch: Colors.blue,
+              fontFamily: 'Roboto',
+              primaryColor: Colors.white,
+              brightness: Brightness.light,
+              backgroundColor: Colors.white,
+              accentColor: Colors.white,
+              accentIconTheme: IconThemeData(color: Colors.black),
+              dividerColor: Colors.black12),
+      darkTheme:
+        ThemeData(
+            primarySwatch: Colors.purple,
+            fontFamily: 'Roboto',
+            brightness: Brightness.dark,
+            backgroundColor: Colors.black,
+            accentColor: Colors.blue,
+            accentIconTheme: IconThemeData(color: Colors.yellow),
+            dividerColor: Colors.black12),
+      themeMode: ThemeMode.light,
       home: MyHomePage(
         title: 'Flutter Demo Home Page',
         key: Key('Test'),
@@ -56,6 +83,22 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     _entries = mysamples.SampleData.getSampleEntries();
   }
 
+  int _hour = 0;
+  int _minute = 0;
+  int _selectedActivityIndex = 0;
+
+  PageController _pageController = PageController(initialPage: 1);
+  ScrollController _histChartScroller =
+      ScrollController(keepScrollOffset: true);
+  int historyChartBarCount = 0;
+
+  List<Activity> _activities = [];
+  List<ActivityEntry> _entries = [];
+
+  String lastSwitchDebugLog = "";
+
+  Timer? _everyMinute;
+
   Future<void> updateData(bool updateEntries,
       [bool updateActivities = false]) async {
     if (updateActivities) {
@@ -68,8 +111,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     }
     setState(() {});
   }
-
-  Timer? _everyMinute;
 
   @override
   void initState() {
@@ -89,43 +130,29 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     });
   }
 
-  int _hour = 0;
-  int _minute = 0;
-  int _selectedActivityIndex = 0;
-
-  PageController _pageController = PageController(initialPage: 1);
-  ScrollController _histChartScroller =
-      ScrollController(keepScrollOffset: true);
-  int historyChartBarCount = 0;
-
-  List<Activity> _activities = [];
-  List<ActivityEntry> _entries = [];
-
-  String lastSwitchDebugLog = "";
-
-  //Map<String, ActivityHistory> _activityHistories = {};
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        backgroundColor: Theme.of(context).backgroundColor,
         appBar: AppBar(
-          title: Text('Today', style: NormalTextStyle()),
-          backgroundColor: Colors.black,
+          title: Text('Today', style: Theme.of(context).textTheme.bodyText2),
         ),
         drawer: Drawer(
+          elevation: 5.0,
           child: ListView(
             children: [
               DrawerHeader(child: Center(
-                child: Text('Yo whaddup', style: NormalTextStyle(Colors.black)),
+                child: Text('', style: Theme.of(context).textTheme.bodyText1),
               )),
-              ListTile(title: Text('Today', style: NormalTextStyle(Colors.black))),
+              ListTile(title: Text('Today', style: Theme.of(context).textTheme.bodyText1)),
               Divider(),
-              ListTile(title: Text('Help', style: NormalTextStyle(Colors.black))),
+              ListTile(title: Text('Help', style: Theme.of(context).textTheme.bodyText1)),
               Divider(),
-              ListTile(title: Text('Check for updates', style: NormalTextStyle(Colors.black))),
+              ListTile(title: Text('About', style: Theme.of(context).textTheme.bodyText1)),
               Divider(),
-              ListTile(title: Text('About', style: NormalTextStyle(Colors.black))),
+              ListTile(title: Text('Visit Creator Website', style: Theme.of(context).textTheme.bodyText1)),
+              Divider(),
             ],
           ),
         ),
@@ -188,7 +215,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   length: 2,
                   child: Scaffold(
                     appBar: AppBar(
-                      backgroundColor: Colors.black,
+                      backgroundColor: Theme.of(context).backgroundColor,
                       title: TabBar(tabs: [
                         Tab(icon: Icon(Icons.album)),
                         Tab(icon: Icon(Icons.bar_chart)),
@@ -197,6 +224,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                     body: TabBarView(
                       children: [
                         Container(
+                          color: Theme.of(context).backgroundColor,
                             alignment: Alignment.center,
                             child: Padding(
                                 padding: EdgeInsets.all(32.0),
@@ -237,7 +265,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                               child: buildStartTime(context),
                             ),
                             TextButton(
-                                child: Text('Set', style: ButtonTextStyle()),
+                                child: Text('Set'),
                                 onPressed: () async {
                                   TimeOfDay? picked = await showTimePicker(
                                       context: context,
@@ -254,7 +282,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                                   _minute = time.minute;
                                   setState(() {});
                                 },
-                                child: Text('Now', style: ButtonTextStyle())),
+                                child: Text('Now')),
                             ElevatedButton(
                                 onPressed: () {
                                   showDebugInfo(context);
@@ -304,7 +332,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                           children: [
                             TextButton(
                                 child: Text('My Activities',
-                                    style: ButtonTextStyle()),
+                                    style: Theme.of(context).textTheme.caption),
                                 onPressed: () => {
                                       Navigator.push(
                                               context,
@@ -337,7 +365,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                                     });
                                   },
                                   child:
-                                      Text('Switch', style: ButtonTextStyle())),
+                                      Text('Switch', style: Theme.of(context).textTheme.caption)),
                             ),
                           ],
                         ),
@@ -371,7 +399,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                         return snapshot.data!;
                       } else {
                         return Text('Retrieving data ...',
-                            style: SecondaryTextStyle(Colors.black));
+                            style: Theme.of(context).textTheme.headline2);
                       }
                     }),
               ),
@@ -388,13 +416,14 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Info'),
-            content: SingleChildScrollView(child: Text(text, style: SmallTextStyle(),)),
+            content: SingleChildScrollView(child:
+              Text(text, style: Theme.of(context).textTheme.headline1)),
             actions: [
               ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text('Oh okay', style: ButtonTextStyle()))
+                  child: Text('Oh okay', style: Theme.of(context).textTheme.caption))
             ],
           );
         });
@@ -571,7 +600,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
               width: 18,
               margin: EdgeInsets.only(right: 4.0),
               color: Color(activity.color)),
-          Text(text, style: LegendTextStyle(Colors.black))
+          Text(text, style: Theme.of(context).textTheme.headline4)
         ],
       ),
     );
@@ -581,10 +610,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('Start Time', style: SmallSpacedTextStyle()),
-        Text(
-            '${_hour.toString().padLeft(2, '0')} : ${_minute.toString().padLeft(2, '0')}',
-            style: PrimaryTextStyle())
+        Text('Start Time', style: Theme.of(context).textTheme.headline3),
+        Text('${_hour.toString().padLeft(2, '0')} : ${_minute.toString().padLeft(2, '0')}',
+        style: Theme.of(context).textTheme.bodyText1)
       ],
     );
   }
@@ -600,10 +628,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         overAndUnderCenterOpacity: 0.75,
         diameterRatio: 1.5,
         children: _activities
-            .map((e) => Text(
-                  e.name,
-                  style: PrimaryTextStyle(),
-                ))
+            .map((e) => Text(e.name, style: Theme.of(context).textTheme.bodyText1))
             .toList(),
         itemExtent: 48,
         physics: FixedExtentScrollPhysics(),
@@ -612,13 +637,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         child: Container(
           height: 200,
           decoration: BoxDecoration(
-              color: Colors.black,
+              color: Theme.of(context).backgroundColor,
               gradient: LinearGradient(
                   begin: FractionalOffset.topCenter,
                   end: FractionalOffset.bottomCenter,
                   colors: [
-                    Colors.black,
-                    Colors.black.withOpacity(0.0),
+                    Theme.of(context).backgroundColor,
+                    Theme.of(context).backgroundColor.withOpacity(0.0),
                   ],
                   stops: [
                     0.0,
@@ -630,13 +655,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         child: Container(
           height: 200,
           decoration: BoxDecoration(
-              color: Colors.black,
+              color: Theme.of(context).backgroundColor,
               gradient: LinearGradient(
                   begin: FractionalOffset.topCenter,
                   end: FractionalOffset.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.0),
-                    Colors.black,
+                    Theme.of(context).backgroundColor.withOpacity(0.0),
+                    Theme.of(context).backgroundColor,
                   ],
                   stops: [
                     0.55,

@@ -69,6 +69,7 @@ class EntrySwitchHandler {
     debugLog += ' startTime = ${startTime.display()}\n';
     debugLog += ' day = ${day.toSimpleString()}\n';
     debugLog += await refreshEntries(entries);
+    debugLog += ' Refreshed entries(today){${entries.length}}\n';
 
     DateTime today = DateTime.now();
     TimeOfDay now = TimeOfDay(hour: today.hour, minute: today.minute);
@@ -86,8 +87,9 @@ class EntrySwitchHandler {
       }
       ActivityEntry newEntry = ActivityEntry(newAct, day, startTime, now);
       await DBClient.instance.insertEntry(newEntry);
+      debugLog += ' Added new ${newEntry.toString()}\n';
       entries = await DBClient.instance.getEntriesByDate(day);
-      debugLog += ' Added new ${newEntry.toString()} and entries=EntriesBy(today)\n';
+      debugLog += ' Refreshed entries(today){${entries.length}}\n';
       return debugLog;
     }
 
@@ -173,7 +175,7 @@ class EntrySwitchHandler {
       }
     }
     entries = await DBClient.instance.getEntriesByDate(day);
-    debugLog += ' Refreshed entriesBy(today){${entries.length}}\n';
+    debugLog += ' Refreshed entries(today){${entries.length}}\n';
     return debugLog;
   }
 

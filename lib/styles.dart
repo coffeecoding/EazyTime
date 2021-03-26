@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class PrimaryTextStyle extends TextStyle {
-  PrimaryTextStyle([Color color = Colors.white]) : super(
+  PrimaryTextStyle(Color color) : super(
     color: color,
     decoration: TextDecoration.none,
     fontSize: 40,
@@ -11,7 +11,7 @@ class PrimaryTextStyle extends TextStyle {
 }
 
 class NormalTextStyle extends TextStyle {
-  NormalTextStyle([Color color = Colors.white]) : super(
+  NormalTextStyle(Color color) : super(
     color: color,
     decoration: TextDecoration.none,
     fontSize: 20,
@@ -21,7 +21,7 @@ class NormalTextStyle extends TextStyle {
 }
 
 class ButtonTextStyle extends TextStyle {
-  ButtonTextStyle([Color color = Colors.white]) : super(
+  ButtonTextStyle(Color color) : super(
       color: color,
       decoration: TextDecoration.none,
       fontSize: 14,
@@ -31,7 +31,7 @@ class ButtonTextStyle extends TextStyle {
 }
 
 class SecondaryTextStyle extends TextStyle {
-  SecondaryTextStyle([Color color = Colors.white]) : super(
+  SecondaryTextStyle(Color color) : super(
       color: color,
       decoration: TextDecoration.none,
       fontSize: 10,
@@ -41,8 +41,8 @@ class SecondaryTextStyle extends TextStyle {
 }
 
 class SmallSpacedTextStyle extends TextStyle {
-  SmallSpacedTextStyle() : super(
-    color: Colors.white,
+  SmallSpacedTextStyle(Color color) : super(
+    color: color,
     fontSize: 10.0,
     decoration: TextDecoration.none,
     letterSpacing: 7.0,
@@ -52,8 +52,8 @@ class SmallSpacedTextStyle extends TextStyle {
 }
 
 class SmallTextStyle extends TextStyle {
-  SmallTextStyle() : super(
-      color: Colors.black,
+  SmallTextStyle(Color color) : super(
+      color: color,
       fontSize: 12.0,
       decoration: TextDecoration.none,
       fontFamily: 'Roboto',
@@ -62,7 +62,7 @@ class SmallTextStyle extends TextStyle {
 }
 
 class LegendTextStyle extends TextStyle {
-  LegendTextStyle([Color color = Colors.white]) : super(
+  LegendTextStyle(Color color) : super(
       color: color,
       fontSize: 10.0,
       decoration: TextDecoration.none,

@@ -33,7 +33,7 @@ class _ActivityManagerState extends State<ActivityManager> {
     return SafeArea(
       child: Scaffold(
         appBar:
-            AppBar(title: Text('Manage Activities', style: NormalTextStyle())),
+            AppBar(title: Text('Manage Activities', style: Theme.of(context).textTheme.bodyText2)),
         body: Container(
           color: Colors.white,
           child: Column(
@@ -50,13 +50,13 @@ class _ActivityManagerState extends State<ActivityManager> {
                               alignment: Alignment.centerLeft,
                                 padding: EdgeInsets.only(left: 8.0),
                                 color: ColorSpec.myRed,
-                              child: Text('Delete', style: NormalTextStyle()))),
+                              child: Text('Delete', style: Theme.of(context).textTheme.bodyText2))),
                         secondaryBackground:
                             Flexible(child: Container(
                                 alignment: Alignment.centerRight,
                                 padding: EdgeInsets.only(right: 8.0),
                                 color: ColorSpec.myGreen,
-                                child: Text('Modify', style: NormalTextStyle()))),
+                                child: Text('Modify', style: Theme.of(context).textTheme.bodyText2))),
                         onDismissed: (dir) => _handleDismissActivity(dir, i),
                         child: Container(
                             alignment: Alignment.centerLeft,

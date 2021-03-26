@@ -29,7 +29,7 @@ class SimplePieChart extends StatelessWidget {
                 leaderLineStyleSpec: charts.ArcLabelLeaderLineStyleSpec(
                     length: 10.0,
                     thickness: 1,
-                    color: charts.ColorUtil.fromDartColor(Colors.grey))),
+                    color: charts.ColorUtil.fromDartColor(Theme.of(context).dividerColor))),
           ]),
     );
   }
