@@ -62,7 +62,7 @@ class EazyTime extends StatelessWidget {
             backgroundColor: Colors.black,
             accentColor: Colors.blue,
             accentIconTheme: IconThemeData(color: Colors.yellow),
-            dividerColor: Colors.grey),
+            dividerColor: Colors.grey.withOpacity(0.2)),
       themeMode: ThemeMode.dark,
       home: MyHomePage(
         title: 'Flutter Demo Home Page',
@@ -150,19 +150,67 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           elevation: 5.0,
           child: ListView(
             children: [
-              DrawerHeader(child: Center(
-                child: Text('LOGO', style: Theme.of(context).textTheme.bodyText1),
-              )),
-              ListTile(title: Text('Today', style: Theme.of(context).textTheme.bodyText2)),
-              Divider(),
-              ListTile(title: Text('History', style: Theme.of(context).textTheme.bodyText2)),
-              Divider(),
-              ListTile(title: Text('All Time Stats', style: Theme.of(context).textTheme.bodyText2)),
-              Divider(),
-              ListTile(title: Text('Help', style: Theme.of(context).textTheme.bodyText2)),
-              Divider(),
-              ListTile(title: Text('About', style: Theme.of(context).textTheme.bodyText2)),
-              Divider(),
+              DrawerHeader(
+                decoration: BoxDecoration(gradient: LinearGradient(
+                    begin: FractionalOffset.topCenter,
+                    end: FractionalOffset.bottomCenter,
+                    colors: [
+                  Theme.of(context).backgroundColor,
+                  Theme.of(context).dividerColor.withOpacity(0.1),
+                  Theme.of(context).dividerColor.withOpacity(0.5)
+                ], stops: [0.0, 0.9, 1.0])),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(top: 10.0),
+                      child: Image.asset('assets/logo4.png',
+                      height: 80, width: 120, fit: BoxFit.fitHeight),
+                    ),
+                    Text('EasyTimetracker', style: Theme.of(context).textTheme.caption),
+                    Text('Get ahold of your Time!', style: Theme.of(context).textTheme.headline4),
+                  ],
+                ),
+              ),
+              Divider(height: 1.0),
+              ListTile(leading: Icon(Icons.pie_chart),
+                  title: TextButton(
+                    child: Container(
+                      alignment: Alignment.centerLeft,
+                        child: Text('Today', style: Theme.of(context).textTheme.bodyText2)),
+                  onPressed: (){})),
+              Divider(height: 1.0),
+              ListTile(leading: Icon(Icons.bar_chart),
+                  title: TextButton(
+                    child: Container(
+                        alignment: Alignment.centerLeft,
+                        child: Text('History', style: Theme.of(context).textTheme.bodyText2)),
+                      onPressed: (){}
+                  )),
+              Divider(height: 1.0),
+              ListTile(leading: Icon(Icons.sort),
+                  title: TextButton(
+                    child: Container(
+                        alignment: Alignment.centerLeft,
+                        child: Text('All Time Stats', style: Theme.of(context).textTheme.bodyText2)),
+                      onPressed: (){}
+                  )),
+              Divider(height: 1.0),
+              ListTile(leading: Icon(Icons.help),
+                  title: TextButton(
+                    child: Container(
+                        alignment: Alignment.centerLeft,
+                        child: Text('Help', style: Theme.of(context).textTheme.bodyText2)),
+                      onPressed: (){}
+                  )),
+              Divider(height: 1.0),
+              ListTile(leading: Icon(Icons.info),
+                  title: TextButton(
+                    child: Container(
+                        alignment: Alignment.centerLeft,
+                        child: Text('About', style: Theme.of(context).textTheme.bodyText2)),
+                      onPressed: (){}
+                  )),
+              Divider(height: 1.0),
             ],
           ),
         ),
