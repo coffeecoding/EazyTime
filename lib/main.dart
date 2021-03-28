@@ -26,43 +26,41 @@ class EazyTime extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'EasyTimetracker',
-      theme:
-          ThemeData(
-            textTheme: TextTheme(
-              bodyText1: PrimaryTextStyle(Colors.black),
-              bodyText2: NormalTextStyle(Colors.black),
-              caption: ButtonTextStyle(Colors.black),
-              headline1: SmallTextStyle(Colors.black),
-              headline2: SecondaryTextStyle(Colors.black),
-              headline3: SmallSpacedTextStyle(Colors.black),
-              headline4: LegendTextStyle(Colors.black),
-            ),
-              primarySwatch: Colors.blue,
-              fontFamily: 'Roboto',
-              primaryColor: Colors.white,
-              brightness: Brightness.light,
-              backgroundColor: Colors.white,
-              accentColor: Colors.white,
-              accentIconTheme: IconThemeData(color: Colors.black),
-              dividerColor: Colors.grey),
-      darkTheme:
-        ThemeData(
-            textTheme: TextTheme(
-              bodyText1: PrimaryTextStyle(Colors.white),
-              bodyText2: NormalTextStyle(Colors.white),
-              caption: ButtonTextStyle(Colors.white),
-              headline1: SmallTextStyle(Colors.white),
-              headline2: SecondaryTextStyle(Colors.white),
-              headline3: SmallSpacedTextStyle(Colors.white),
-              headline4: LegendTextStyle(Colors.white),
-            ),
-            primarySwatch: Colors.purple,
-            fontFamily: 'Roboto',
-            brightness: Brightness.dark,
-            backgroundColor: Colors.black,
-            accentColor: Colors.blue,
-            accentIconTheme: IconThemeData(color: Colors.yellow),
-            dividerColor: Colors.grey.withOpacity(0.2)),
+      theme: ThemeData(
+          textTheme: TextTheme(
+            bodyText1: PrimaryTextStyle(Colors.black),
+            bodyText2: NormalTextStyle(Colors.black),
+            caption: ButtonTextStyle(Colors.black),
+            headline1: SmallTextStyle(Colors.black),
+            headline2: SecondaryTextStyle(Colors.black),
+            headline3: SmallSpacedTextStyle(Colors.black),
+            headline4: LegendTextStyle(Colors.black),
+          ),
+          primarySwatch: Colors.blue,
+          fontFamily: 'Roboto',
+          primaryColor: Colors.white,
+          brightness: Brightness.light,
+          backgroundColor: Colors.white,
+          accentColor: Colors.white,
+          accentIconTheme: IconThemeData(color: Colors.black),
+          dividerColor: Colors.grey),
+      darkTheme: ThemeData(
+          textTheme: TextTheme(
+            bodyText1: PrimaryTextStyle(Colors.white),
+            bodyText2: NormalTextStyle(Colors.white),
+            caption: ButtonTextStyle(Colors.white),
+            headline1: SmallTextStyle(Colors.white),
+            headline2: SecondaryTextStyle(Colors.white),
+            headline3: SmallSpacedTextStyle(Colors.white),
+            headline4: LegendTextStyle(Colors.white),
+          ),
+          primarySwatch: Colors.purple,
+          fontFamily: 'Roboto',
+          brightness: Brightness.dark,
+          backgroundColor: Colors.black,
+          accentColor: Colors.blue,
+          accentIconTheme: IconThemeData(color: Colors.yellow),
+          dividerColor: Colors.grey.withOpacity(0.2)),
       themeMode: ThemeMode.dark,
       home: MyHomePage(
         title: 'Flutter Demo Home Page',
@@ -81,12 +79,14 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
+enum DisplayedPage { home, history, allTimeStats, help, about }
+
 class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
-  _MyHomePageState() {
+  _MyHomePageState() : currentPage = DisplayedPage.home {
     updateData(true, true);
   }
 
-  _MyHomePageState.withSampleData() {
+  _MyHomePageState.withSampleData() : currentPage = DisplayedPage.home {
     //_activityHistories = mysamples.SampleData.getSampleHistory();
     _activities = mysamples.SampleData.getActivities();
     _entries = mysamples.SampleData.getSampleEntries();
@@ -106,6 +106,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   String lastSwitchDebugLog = "";
 
   Timer? _everyMinute;
+  DisplayedPage currentPage;
 
   Future<void> updateData(bool updateEntries,
       [bool updateActivities = false]) async {
@@ -127,8 +128,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     if (_entries.isNotEmpty) {
       _hour = _entries.last.start.hour;
       _minute = _entries.last.start.minute;
-      setState(() {
-      });
+      setState(() {});
     }
 
     // Periodically set State
@@ -140,194 +140,144 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    Widget? _body;
+    String _title = 'Today';
+    switch (currentPage) {
+      case DisplayedPage.home:
+        {
+          _title = 'Today';
+          _body = buildHomePage(context);
+          break;
+        }
+      case DisplayedPage.history:
+        {
+          _title = 'History';
+          _body = buildHistoryPage(context);
+          break;
+        }
+      case DisplayedPage.allTimeStats:
+        {
+          _title = 'All Time Statistics';
+          _body = buildAllTimeStatsPage(context);
+          break;
+        }
+      case DisplayedPage.help:
+        {
+          _title = 'Help Page';
+          _body = buildHomePage(context);
+          break;
+        }
+      case DisplayedPage.about:
+        {
+          _title = 'About EasyTimetracker';
+          _body = buildHomePage(context);
+          break;
+        }
+    }
     return SafeArea(
-      child: Scaffold(
-        backgroundColor: Theme.of(context).backgroundColor,
-        appBar: AppBar(
-          title: Text('Today', style: Theme.of(context).textTheme.bodyText2),
-        ),
-        drawer: Drawer(
-          elevation: 5.0,
-          child: ListView(
-            children: [
-              DrawerHeader(
-                decoration: BoxDecoration(gradient: LinearGradient(
-                    begin: FractionalOffset.topCenter,
-                    end: FractionalOffset.bottomCenter,
-                    colors: [
-                  Theme.of(context).backgroundColor,
-                  Theme.of(context).dividerColor.withOpacity(0.1),
-                  Theme.of(context).dividerColor.withOpacity(0.5)
-                ], stops: [0.0, 0.9, 1.0])),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(top: 10.0),
-                      child: Image.asset('assets/logo4.png',
-                      height: 80, width: 120, fit: BoxFit.fitHeight),
-                    ),
-                    Text('EasyTimetracker', style: Theme.of(context).textTheme.caption),
-                    Text('Get ahold of your Time!', style: Theme.of(context).textTheme.headline4),
-                  ],
-                ),
-              ),
-              Divider(height: 1.0),
-              ListTile(leading: Icon(Icons.pie_chart),
-                  title: TextButton(
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                        child: Text('Today', style: Theme.of(context).textTheme.bodyText2)),
-                  onPressed: (){})),
-              Divider(height: 1.0),
-              ListTile(leading: Icon(Icons.bar_chart),
-                  title: TextButton(
-                    child: Container(
-                        alignment: Alignment.centerLeft,
-                        child: Text('History', style: Theme.of(context).textTheme.bodyText2)),
-                      onPressed: (){}
-                  )),
-              Divider(height: 1.0),
-              ListTile(leading: Icon(Icons.sort),
-                  title: TextButton(
-                    child: Container(
-                        alignment: Alignment.centerLeft,
-                        child: Text('All Time Stats', style: Theme.of(context).textTheme.bodyText2)),
-                      onPressed: (){}
-                  )),
-              Divider(height: 1.0),
-              ListTile(leading: Icon(Icons.help),
-                  title: TextButton(
-                    child: Container(
-                        alignment: Alignment.centerLeft,
-                        child: Text('Help', style: Theme.of(context).textTheme.bodyText2)),
-                      onPressed: (){}
-                  )),
-              Divider(height: 1.0),
-              ListTile(leading: Icon(Icons.info),
-                  title: TextButton(
-                    child: Container(
-                        alignment: Alignment.centerLeft,
-                        child: Text('About', style: Theme.of(context).textTheme.bodyText2)),
-                      onPressed: (){}
-                  )),
-              Divider(height: 1.0),
-            ],
-          ),
-        ),
-        body: Column(
-          children: [
-            Flexible(
-                child:
-                    Container(
-                      color: Theme.of(context).backgroundColor,
-                        alignment: Alignment.center,
-                        child: Padding(
-                            padding: EdgeInsets.all(32.0),
-                            child: Center(child: buildEntryChart(context))))
+        child: Scaffold(
+            backgroundColor: Theme.of(context).backgroundColor,
+            appBar: AppBar(
+              title: Text(_title, style: Theme.of(context).textTheme.bodyText2),
             ),
-            Flexible(
-              child: Column(
+            drawer: Drawer(
+              elevation: 5.0,
+              child: ListView(
                 children: [
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  DrawerHeader(
+                    decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                            begin: FractionalOffset.topCenter,
+                            end: FractionalOffset.bottomCenter,
+                            colors: [
+                          Theme.of(context).backgroundColor,
+                          Theme.of(context).dividerColor.withOpacity(0.1),
+                          Theme.of(context).dividerColor.withOpacity(0.5)
+                        ],
+                            stops: [
+                          0.0,
+                          0.95,
+                          1.0
+                        ])),
+                    child: Column(
                       children: [
-                        Container(
-                          height: 80,
-                          padding: EdgeInsets.symmetric(horizontal: 8.0),
-                          child: buildStartTime(context),
-                        ),
-                        TextButton(
-                            child: Text('Set'),
-                            onPressed: () async {
-                              TimeOfDay? picked = await showTimePicker(
-                                  context: context,
-                                  initialTime: TimeOfDay.now());
-                              if (picked == null) return;
-                              _hour = picked.hour;
-                              _minute = picked.minute;
-                              setState(() {});
-                            }),
-                        ElevatedButton(
-                            onPressed: () {
-                              TimeOfDay time = TimeOfDay.now();
-                              _hour = time.hour;
-                              _minute = time.minute;
-                              setState(() {});
-                            },
-                            child: Text('Now')),
-                        ElevatedButton(
-                            onPressed: () {
-                              showDebugInfo(context);
-                              showInfo(lastSwitchDebugLog);
-                            },
-                            child: Text('DBG')),
-                        ElevatedButton(
-                            onPressed: () async {
-                              await DBClient.instance.deleteEntriesByDate(
-                                  DateUtils.dateOnly(DateTime.now()));
-                              //await DBClient.instance.deleteAllActivities();
-                              await updateData(true, true);
-                            },
-                            child: Text('CLR')),
-                      ]),
-                  Center(
-                    child: LimitedBox(
-                      maxHeight: 200,
-                      maxWidth: 200,
-                      child: buildActivityList(context),
-                    ),
-                  ),
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TextButton(
-                            child: Text('My Activities',
-                                style: Theme.of(context).textTheme.caption),
-                            onPressed: () => {
-                                  Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  ActivityManager(
-                                                      _activities)))
-                                      .then(onNavigateHere)
-                                }),
                         Padding(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 10.0),
-                          child: ElevatedButton(
-                              onPressed: () async {
-                                TimeOfDay _selTime =
-                                    TimeOfDay(hour: _hour, minute: _minute);
-                                Activity _selectedActivity =
-                                    _activities[_selectedActivityIndex];
-
-                                await EntrySwitchHandler.handleSwitch(
-                                        _entries,
-                                        _selectedActivity,
-                                        _selTime,
-                                        DateUtils.dateOnly(DateTime.now()))
-                                    .then((val) async {
-                                  lastSwitchDebugLog = val;
-                                  await updateData(true, true);
-                                }).catchError((e) {
-                                  showInfo(e.toString());
-                                });
-                              },
-                              child:
-                                  Text('Switch', style: Theme.of(context).textTheme.caption)),
+                          padding: EdgeInsets.only(top: 10.0),
+                          child: Image.asset('assets/logo4.png',
+                              height: 80, width: 120, fit: BoxFit.fitHeight),
                         ),
+                        Text('EasyTimetracker',
+                            style: Theme.of(context).textTheme.caption),
+                        Text('Get ahold of your Time!',
+                            style: Theme.of(context).textTheme.headline4),
                       ],
                     ),
                   ),
+                  Divider(height: 1.0),
+                  ListTile(
+                      leading: Icon(Icons.pie_chart_outline_sharp),
+                      onTap: () {
+                        currentPage = DisplayedPage.home;
+                        setState(() {});
+                        Navigator.pop(context);
+                      },
+                      title: Container(
+                          alignment: Alignment.centerLeft,
+                          child: Text('Today',
+                              style: Theme.of(context).textTheme.bodyText2))),
+                  Divider(height: 1.0),
+                  ListTile(
+                      leading: Icon(Icons.bar_chart_outlined),
+                      onTap: () {
+                        currentPage = DisplayedPage.history;
+                        setState(() {});
+                        Navigator.pop(context);
+                      },
+                      title: Container(
+                          alignment: Alignment.centerLeft,
+                          child: Text('History',
+                              style: Theme.of(context).textTheme.bodyText2))),
+                  Divider(height: 1.0),
+                  ListTile(
+                      leading: Icon(Icons.analytics_outlined),
+                      onTap: () {
+                        currentPage = DisplayedPage.allTimeStats;
+                        setState(() {});
+                        Navigator.pop(context);
+                      },
+                      title: Container(
+                          alignment: Alignment.centerLeft,
+                          child: Text('All Time Stats',
+                              style: Theme.of(context).textTheme.bodyText2))),
+                  Divider(height: 1.0),
+                  ListTile(
+                      leading: Icon(Icons.help_outline),
+                      onTap: () {
+                        currentPage = DisplayedPage.help;
+                        setState(() {});
+                        Navigator.pop(context);
+                      },
+                      title: Container(
+                          alignment: Alignment.centerLeft,
+                          child: Text('Help',
+                              style: Theme.of(context).textTheme.bodyText2))),
+                  Divider(height: 1.0),
+                  ListTile(
+                      leading: Icon(Icons.info_outline),
+                      onTap: () {
+                        currentPage = DisplayedPage.about;
+                        setState(() {});
+                        Navigator.pop(context);
+                      },
+                      title: Container(
+                          alignment: Alignment.centerLeft,
+                          child: Text('About',
+                              style: Theme.of(context).textTheme.bodyText2))),
+                  Divider(height: 1.0),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
+            body: _body!));
   }
 
   void showInfo(String text) {
@@ -336,14 +286,16 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Info'),
-            content: SingleChildScrollView(child:
-              Text(text, style: Theme.of(context).textTheme.headline1)),
+            content: SingleChildScrollView(
+                child:
+                    Text(text, style: Theme.of(context).textTheme.headline1)),
             actions: [
               ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text('Oh okay', style: Theme.of(context).textTheme.caption))
+                  child: Text('Oh okay',
+                      style: Theme.of(context).textTheme.caption))
             ],
           );
         });
@@ -531,8 +483,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text('Start Time', style: Theme.of(context).textTheme.headline3),
-        Text('${_hour.toString().padLeft(2, '0')} : ${_minute.toString().padLeft(2, '0')}',
-        style: Theme.of(context).textTheme.bodyText1)
+        Text(
+            '${_hour.toString().padLeft(2, '0')} : ${_minute.toString().padLeft(2, '0')}',
+            style: Theme.of(context).textTheme.bodyText1)
       ],
     );
   }
@@ -548,7 +501,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         overAndUnderCenterOpacity: 0.75,
         diameterRatio: 1.5,
         children: _activities
-            .map((e) => Text(e.name, style: Theme.of(context).textTheme.bodyText1))
+            .map((e) =>
+                Text(e.name, style: Theme.of(context).textTheme.bodyText1))
             .toList(),
         itemExtent: 48,
         physics: FixedExtentScrollPhysics(),
@@ -629,5 +583,164 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             ],
           );
         });
+  }
+
+  Widget buildHomePage(BuildContext context) {
+    return Column(
+      children: [
+        Flexible(
+            child: Container(
+                color: Theme.of(context).backgroundColor,
+                alignment: Alignment.center,
+                child: Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: Center(child: buildEntryChart(context))))),
+        Flexible(
+          child: Column(
+            children: [
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Container(
+                  height: 80,
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  child: buildStartTime(context),
+                ),
+                TextButton(
+                    child: Text('Set'),
+                    onPressed: () async {
+                      TimeOfDay? picked = await showTimePicker(
+                          context: context, initialTime: TimeOfDay.now());
+                      if (picked == null) return;
+                      _hour = picked.hour;
+                      _minute = picked.minute;
+                      setState(() {});
+                    }),
+                ElevatedButton(
+                    onPressed: () {
+                      TimeOfDay time = TimeOfDay.now();
+                      _hour = time.hour;
+                      _minute = time.minute;
+                      setState(() {});
+                    },
+                    child: Text('Now')),
+                ElevatedButton(
+                    onPressed: () {
+                      showDebugInfo(context);
+                      showInfo(lastSwitchDebugLog);
+                    },
+                    child: Text('DBG')),
+                ElevatedButton(
+                    onPressed: () async {
+                      await DBClient.instance.deleteEntriesByDate(
+                          DateUtils.dateOnly(DateTime.now()));
+                      //await DBClient.instance.deleteAllActivities();
+                      await updateData(true, true);
+                    },
+                    child: Text('CLR')),
+              ]),
+              Center(
+                child: LimitedBox(
+                  maxHeight: 200,
+                  maxWidth: 200,
+                  child: buildActivityList(context),
+                ),
+              ),
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                        child: Text('My Activities',
+                            style: Theme.of(context).textTheme.caption),
+                        onPressed: () => {
+                              Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              ActivityManager(_activities)))
+                                  .then(onNavigateHere)
+                            }),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      child: ElevatedButton(
+                          onPressed: () async {
+                            TimeOfDay _selTime =
+                                TimeOfDay(hour: _hour, minute: _minute);
+                            Activity _selectedActivity =
+                                _activities[_selectedActivityIndex];
+
+                            await EntrySwitchHandler.handleSwitch(
+                                    _entries,
+                                    _selectedActivity,
+                                    _selTime,
+                                    DateUtils.dateOnly(DateTime.now()))
+                                .then((val) async {
+                              lastSwitchDebugLog = val;
+                              await updateData(true, true);
+                            }).catchError((e) {
+                              showInfo(e.toString());
+                            });
+                          },
+                          child: Text('Switch',
+                              style: Theme.of(context).textTheme.caption)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget buildHistoryPage(BuildContext context) {
+    return Container(
+        alignment: Alignment.center,
+        color: Colors.white,
+        child:
+            Column(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+          Flexible(
+            flex: 2,
+            child: SingleChildScrollView(
+              controller: _histChartScroller,
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(
+                width: historyChartBarCount * 100,
+                height: 300,
+                child: FutureBuilder<Widget>(
+                    future: buildHistoryChart(),
+                    builder:
+                        (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+                      if (snapshot.hasData) {
+                        return snapshot.data!;
+                      } else {
+                        return Text('Retrieving data ...',
+                            style: SecondaryTextStyle(Colors.black));
+                      }
+                    }),
+              ),
+            ),
+          ),
+          Flexible(
+              flex: 1, child: Wrap(children: buildActivityLegend(_activities)))
+        ]));
+  }
+
+  Widget buildAllTimeStatsPage(BuildContext context) {
+    return Container(
+      height: 800,
+      color: Colors.white,
+      alignment: Alignment.center,
+      child: FutureBuilder<Widget>(
+          future: buildAllTimeChart(),
+          builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+            if (snapshot.hasData) {
+              return snapshot.data!;
+            } else {
+              return Text('Retrieving data ...',
+                  style: Theme.of(context).textTheme.headline2);
+            }
+          }),
+    );
   }
 }
