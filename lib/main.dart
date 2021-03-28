@@ -472,6 +472,32 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     return StackedBarChart(data, animate: true);
   }
 
+  Future<Widget> buildHistoryChartAll(BuildContext context) async {
+    // This method is commented as it does quite a bit of data transformation.
+    // Get all existing entries from db.
+    List<ActivityEntry> allEntries = await DBClient.instance.getAllEntries();
+
+    // Group entries by date.
+    Map<DateTime, List<ActivityEntry>> entriesByDate =
+    allEntries.groupBy<DateTime>((e) => DateUtils.dateOnly(e.date));
+    // Update hist chart bar count
+    historyChartBarCount = entriesByDate.keys.length;
+
+    // Declare and fill the data structure needed to plot the data at hand.
+    List<charts.Series<ActivityEntry, String>> data = [];
+    for (var entry in entriesByDate.entries) {
+      data.add(new charts.Series<ActivityEntry, String>(
+          id: entry.key.toSimpleString(),
+          domainFn: (ActivityEntry act, _) => act.date.toSimpleString(),
+          measureFn: (ActivityEntry act, _) => act.fractionOfDay() * 24,
+          colorFn: (ActivityEntry act, _) =>
+              charts.ColorUtil.fromDartColor(Color(act.color)),
+          data: entry.value));
+    }
+
+    return StackedBarChart(data, animate: true);
+  }
+
   Widget? buildStackedChart(BuildContext context) {
     if (_entries.isEmpty)
       return Text('No data found', style: SecondaryTextStyle(Colors.grey));
@@ -754,9 +780,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
               scrollDirection: Axis.horizontal,
               child: SizedBox(
                 width: historyChartBarCount * 100,
-                height: 300,
+                height: 400,
                 child: FutureBuilder<Widget>(
-                    future: buildHistoryChart(context),
+                    future: buildHistoryChartAll(context),
                     builder:
                         (BuildContext context, AsyncSnapshot<Widget> snapshot) {
                       if (snapshot.hasData) {
