@@ -16,7 +16,17 @@ class NormalTextStyle extends TextStyle {
     decoration: TextDecoration.none,
     fontSize: 20,
     fontFamily: 'Roboto',
-    fontWeight: FontWeight.w300
+    fontWeight: FontWeight.w200
+  );
+}
+
+class NormalTextStyleBold extends TextStyle {
+  NormalTextStyleBold(Color color) : super(
+      color: color,
+      decoration: TextDecoration.none,
+      fontSize: 20,
+      fontFamily: 'Roboto',
+      fontWeight: FontWeight.w400
   );
 }
 

@@ -3,7 +3,7 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter_eazytime/styles.dart';
 
 class StackedBarChart extends StatelessWidget {
-  final List<charts.Series<dynamic,String>> seriesList;
+  final List<charts.Series<dynamic, String>> seriesList;
   final bool? animate;
 
   StackedBarChart(this.seriesList, {this.animate});
@@ -17,7 +17,6 @@ class StackedBarChart extends StatelessWidget {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return new charts.BarChart(
@@ -27,12 +26,15 @@ class StackedBarChart extends StatelessWidget {
       // domainAxis is x Axis
       // MeasureAxis is y axis
       primaryMeasureAxis: charts.NumericAxisSpec(
-        tickProviderSpec: charts.BasicNumericTickProviderSpec(
-            dataIsInWholeNumbers: true,
-            desiredMaxTickCount: 12,
-            desiredMinTickCount: 6,
-            desiredTickCount: 8)
-      ),
+          renderSpec: charts.GridlineRendererSpec(
+              labelStyle: charts.TextStyleSpec(
+                  color: charts.ColorUtil.fromDartColor(
+                      Theme.of(context).textTheme.headline1!.color))),
+          tickProviderSpec: charts.BasicNumericTickProviderSpec(
+              dataIsInWholeNumbers: true,
+              desiredMaxTickCount: 12,
+              desiredMinTickCount: 6,
+              desiredTickCount: 8)),
       /*behaviors: [
         new charts.SeriesLegend(
             position: charts.BehaviorPosition.bottom,

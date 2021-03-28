@@ -35,6 +35,7 @@ class EazyTime extends StatelessWidget {
             headline2: SecondaryTextStyle(Colors.black),
             headline3: SmallSpacedTextStyle(Colors.black),
             headline4: LegendTextStyle(Colors.black),
+            headline5: NormalTextStyleBold(Colors.black)
           ),
           primarySwatch: Colors.blue,
           fontFamily: 'Roboto',
@@ -53,6 +54,7 @@ class EazyTime extends StatelessWidget {
             headline2: SecondaryTextStyle(Colors.white),
             headline3: SmallSpacedTextStyle(Colors.white),
             headline4: LegendTextStyle(Colors.white),
+            headline5: NormalTextStyleBold(Colors.white)
           ),
           primarySwatch: Colors.purple,
           fontFamily: 'Roboto',
@@ -79,7 +81,7 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-enum DisplayedPage { home, history, allTimeStats, help, about }
+enum DisplayedPage { home, history, allTimeStats, help, about, preferences }
 
 class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   _MyHomePageState() : currentPage = DisplayedPage.home {
@@ -173,6 +175,12 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           _body = buildHomePage(context);
           break;
         }
+      case DisplayedPage.preferences:
+        {
+          _title = 'Preferences';
+          _body = buildHomePage(context);
+          break;
+        }
     }
     return SafeArea(
         child: Scaffold(
@@ -215,7 +223,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   ),
                   Divider(height: 1.0),
                   ListTile(
-                      leading: Icon(Icons.pie_chart_outline_sharp),
+                      leading: Icon(currentPage == DisplayedPage.home
+                          ? Icons.pie_chart
+                          : Icons.pie_chart_outline_sharp),
                       onTap: () {
                         currentPage = DisplayedPage.home;
                         setState(() {});
@@ -224,10 +234,14 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                       title: Container(
                           alignment: Alignment.centerLeft,
                           child: Text('Today',
-                              style: Theme.of(context).textTheme.bodyText2))),
+                              style: currentPage == DisplayedPage.home
+                              ? Theme.of(context).textTheme.headline5
+                              : Theme.of(context).textTheme.bodyText2))),
                   Divider(height: 1.0),
                   ListTile(
-                      leading: Icon(Icons.bar_chart_outlined),
+                      leading: Icon(currentPage == DisplayedPage.history
+                          ? Icons.bar_chart
+                          : Icons.bar_chart_outlined),
                       onTap: () {
                         currentPage = DisplayedPage.history;
                         setState(() {});
@@ -236,10 +250,14 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                       title: Container(
                           alignment: Alignment.centerLeft,
                           child: Text('History',
-                              style: Theme.of(context).textTheme.bodyText2))),
+                              style: currentPage == DisplayedPage.history
+                                  ? Theme.of(context).textTheme.headline5
+                                  : Theme.of(context).textTheme.bodyText2))),
                   Divider(height: 1.0),
                   ListTile(
-                      leading: Icon(Icons.analytics_outlined),
+                      leading: Icon(currentPage == DisplayedPage.allTimeStats
+                          ? Icons.analytics
+                          : Icons.analytics_outlined),
                       onTap: () {
                         currentPage = DisplayedPage.allTimeStats;
                         setState(() {});
@@ -248,10 +266,31 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                       title: Container(
                           alignment: Alignment.centerLeft,
                           child: Text('All Time Stats',
-                              style: Theme.of(context).textTheme.bodyText2))),
+                              style: currentPage == DisplayedPage.allTimeStats
+                                  ? Theme.of(context).textTheme.headline5
+                                  : Theme.of(context).textTheme.bodyText2))),
+                  Divider(height: 1.0),
                   Divider(height: 1.0),
                   ListTile(
-                      leading: Icon(Icons.help_outline),
+                      leading: Icon(currentPage == DisplayedPage.preferences
+                          ? Icons.settings
+                          : Icons.settings_outlined),
+                      onTap: () {
+                        currentPage = DisplayedPage.preferences;
+                        setState(() {});
+                        Navigator.pop(context);
+                      },
+                      title: Container(
+                          alignment: Alignment.centerLeft,
+                          child: Text('Preferences',
+                              style: currentPage == DisplayedPage.preferences
+                                  ? Theme.of(context).textTheme.headline5
+                                  : Theme.of(context).textTheme.bodyText2))),
+                  Divider(height: 1.0),
+                  ListTile(
+                      leading: Icon(currentPage == DisplayedPage.help
+                          ? Icons.help
+                          : Icons.help_outline),
                       onTap: () {
                         currentPage = DisplayedPage.help;
                         setState(() {});
@@ -260,10 +299,15 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                       title: Container(
                           alignment: Alignment.centerLeft,
                           child: Text('Help',
-                              style: Theme.of(context).textTheme.bodyText2))),
+                              style: currentPage == DisplayedPage.help
+                                  ? Theme.of(context).textTheme.headline5
+                                  : Theme.of(context).textTheme.bodyText2))),
+                  Divider(height: 1.0),
                   Divider(height: 1.0),
                   ListTile(
-                      leading: Icon(Icons.info_outline),
+                      leading: Icon(currentPage == DisplayedPage.about
+                          ? Icons.info
+                          : Icons.info_outline),
                       onTap: () {
                         currentPage = DisplayedPage.about;
                         setState(() {});
@@ -272,12 +316,14 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                       title: Container(
                           alignment: Alignment.centerLeft,
                           child: Text('About',
-                              style: Theme.of(context).textTheme.bodyText2))),
+                              style: currentPage == DisplayedPage.about
+                                  ? Theme.of(context).textTheme.headline5
+                                  : Theme.of(context).textTheme.bodyText2))),
                   Divider(height: 1.0),
                 ],
               ),
             ),
-            body: _body!));
+            body: _body));
   }
 
   void showInfo(String text) {
@@ -318,11 +364,11 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         .toList();
   }
 
-  Future<Widget> buildAllTimeChart() async {
+  Future<Widget> buildAllTimeChart(BuildContext context) async {
     List<ActivityEntry> entries = await DBClient.instance.getAllEntries();
 
     if (entries.isEmpty)
-      return Text('No data found.', style: SecondaryTextStyle(Colors.grey));
+      return Text('No data found.', style: Theme.of(context).textTheme.headline2);
 
     Map<String, ActivityPortion> portions = getPortionsByName(entries);
 
@@ -379,7 +425,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     return PartialPieChart(chartData, passedFractionOfDay, animate: false);
   }
 
-  Future<Widget> buildHistoryChart() async {
+  Future<Widget> buildHistoryChart(BuildContext context) async {
     // This method is commented as it does quite a bit of data transformation.
     // Get all existing entries from db.
     List<ActivityEntry> allEntries = await DBClient.instance.getAllEntries();
@@ -696,7 +742,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   Widget buildHistoryPage(BuildContext context) {
     return Container(
         alignment: Alignment.center,
-        color: Colors.white,
         child:
             Column(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
           Flexible(
@@ -708,7 +753,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                 width: historyChartBarCount * 100,
                 height: 300,
                 child: FutureBuilder<Widget>(
-                    future: buildHistoryChart(),
+                    future: buildHistoryChart(context),
                     builder:
                         (BuildContext context, AsyncSnapshot<Widget> snapshot) {
                       if (snapshot.hasData) {
@@ -729,10 +774,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   Widget buildAllTimeStatsPage(BuildContext context) {
     return Container(
       height: 800,
-      color: Colors.white,
       alignment: Alignment.center,
       child: FutureBuilder<Widget>(
-          future: buildAllTimeChart(),
+          future: buildAllTimeChart(context),
           builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
             if (snapshot.hasData) {
               return snapshot.data!;

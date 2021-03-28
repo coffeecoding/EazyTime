@@ -26,10 +26,14 @@ class SimplePieChart extends StatelessWidget {
           arcRendererDecorators: [
             new charts.ArcLabelDecorator(
                 labelPosition: charts.ArcLabelPosition.auto,
+                outsideLabelStyleSpec: charts.TextStyleSpec(
+                    fontFamily: Theme.of(context).textTheme.headline1!.fontFamily,
+                    color: charts.ColorUtil.fromDartColor(Theme.of(context).textTheme.headline1!.color),
+                    fontSize: Theme.of(context).textTheme.headline1!.fontSize!.toInt()),
                 leaderLineStyleSpec: charts.ArcLabelLeaderLineStyleSpec(
                     length: 10.0,
                     thickness: 1,
-                    color: charts.ColorUtil.fromDartColor(Theme.of(context).dividerColor))),
+                    color: charts.ColorUtil.fromDartColor(Colors.grey))),
           ]),
     );
   }
