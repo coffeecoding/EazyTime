@@ -3,10 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_eazytime/activity.dart';
 import 'package:flutter_eazytime/styles.dart';
 import 'data_access.dart';
-import 'data_access.dart';
-import 'data_access.dart';
-import 'styles.dart';
-import 'styles.dart';
 import 'styles.dart';
 
 class ActivityManager extends StatefulWidget {
@@ -33,12 +29,27 @@ class _ActivityManagerState extends State<ActivityManager> {
     return SafeArea(
       child: Scaffold(
         appBar:
-            AppBar(title: Text('Manage Activities', style: Theme.of(context).textTheme.bodyText2)),
+            AppBar(title: Text('Manage Activities', style: Theme.of(context).textTheme.headline5)),
         body: Container(
-          color: Colors.white,
+          color: Theme.of(context).backgroundColor,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Row(children:[
+                      Icon(Icons.arrow_left,
+                          color: Theme.of(context).secondaryHeaderColor.withOpacity(0.5)),
+                      Text('Swipe left to modify', style: Theme.of(context).textTheme.headline2),
+                    ]),
+                    Row(children: [
+                      Text('Swipe right to delete', style: Theme.of(context).textTheme.headline2),
+                      Icon(Icons.arrow_right,
+                          color: Theme.of(context).secondaryHeaderColor.withOpacity(0.5)),
+                    ])
+                  ]
+              ),
               Flexible(
                 child: ListView.builder(
                     padding:
@@ -63,12 +74,12 @@ class _ActivityManagerState extends State<ActivityManager> {
                             decoration: BoxDecoration(
                                 border: Border(
                                     bottom: BorderSide(
-                                        color: Colors.grey.shade200,
+                                        color: Theme.of(context).dividerColor,
                                         width: 1.0))),
                             height: 50,
                             padding: EdgeInsets.only(left: 8.0),
                             child: Text(activities[i].name,
-                                style: NormalTextStyle(
+                                style: NormalTextStyleBold(
                                     Color(activities[i].color))))),
                     itemCount: activities.length),
               ),

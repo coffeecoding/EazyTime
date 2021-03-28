@@ -36,13 +36,13 @@ class ButtonTextStyle extends TextStyle {
       decoration: TextDecoration.none,
       fontSize: 14,
       fontFamily: 'Roboto',
-      fontWeight: FontWeight.w300
+      fontWeight: FontWeight.w400
   );
 }
 
 class SecondaryTextStyle extends TextStyle {
   SecondaryTextStyle(Color color) : super(
-      color: color,
+      color: color.withOpacity(0.5),
       decoration: TextDecoration.none,
       fontSize: 10,
       fontFamily: 'Roboto',

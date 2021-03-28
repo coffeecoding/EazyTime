@@ -39,12 +39,13 @@ class EazyTime extends StatelessWidget {
           ),
           primarySwatch: Colors.blue,
           fontFamily: 'Roboto',
+          secondaryHeaderColor: Colors.black,
           primaryColor: Colors.white,
           brightness: Brightness.light,
           backgroundColor: Colors.white,
           accentColor: Colors.white,
           accentIconTheme: IconThemeData(color: Colors.black),
-          dividerColor: Colors.grey),
+          dividerColor: Colors.grey.withOpacity(0.2)),
       darkTheme: ThemeData(
           textTheme: TextTheme(
             bodyText1: PrimaryTextStyle(Colors.white),
@@ -58,9 +59,10 @@ class EazyTime extends StatelessWidget {
           ),
           primarySwatch: Colors.purple,
           fontFamily: 'Roboto',
+          secondaryHeaderColor: Colors.white,
           brightness: Brightness.dark,
           backgroundColor: Colors.black,
-          accentColor: Colors.blue,
+          accentColor: Colors.purple,
           accentIconTheme: IconThemeData(color: Colors.yellow),
           dividerColor: Colors.grey.withOpacity(0.2)),
       themeMode: ThemeMode.dark,
@@ -529,9 +531,19 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text('Start Time', style: Theme.of(context).textTheme.headline3),
-        Text(
-            '${_hour.toString().padLeft(2, '0')} : ${_minute.toString().padLeft(2, '0')}',
-            style: Theme.of(context).textTheme.bodyText1)
+        TextButton(
+          onPressed: () async {
+            TimeOfDay? picked = await showTimePicker(
+                context: context, initialTime: TimeOfDay.now());
+            if (picked == null) return;
+            _hour = picked.hour;
+            _minute = picked.minute;
+            setState(() {});
+          },
+          child: Text(
+              '${_hour.toString().padLeft(2, '0')} : ${_minute.toString().padLeft(2, '0')}',
+              style: Theme.of(context).textTheme.bodyText1),
+        )
       ],
     );
   }
@@ -644,44 +656,45 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         Flexible(
           child: Column(
             children: [
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Container(
                   height: 80,
                   padding: EdgeInsets.symmetric(horizontal: 8.0),
                   child: buildStartTime(context),
                 ),
                 TextButton(
-                    child: Text('Set'),
-                    onPressed: () async {
-                      TimeOfDay? picked = await showTimePicker(
-                          context: context, initialTime: TimeOfDay.now());
-                      if (picked == null) return;
-                      _hour = picked.hour;
-                      _minute = picked.minute;
-                      setState(() {});
-                    }),
-                ElevatedButton(
                     onPressed: () {
                       TimeOfDay time = TimeOfDay.now();
                       _hour = time.hour;
                       _minute = time.minute;
                       setState(() {});
                     },
-                    child: Text('Now')),
-                ElevatedButton(
-                    onPressed: () {
-                      showDebugInfo(context);
-                      showInfo(lastSwitchDebugLog);
-                    },
-                    child: Text('DBG')),
-                ElevatedButton(
-                    onPressed: () async {
-                      await DBClient.instance.deleteEntriesByDate(
-                          DateUtils.dateOnly(DateTime.now()));
-                      //await DBClient.instance.deleteAllActivities();
-                      await updateData(true, true);
-                    },
-                    child: Text('CLR')),
+                  child: Text('Now', style: Theme.of(context).textTheme.caption),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: ElevatedButton(
+                      onPressed: () async {
+                        TimeOfDay _selTime =
+                        TimeOfDay(hour: _hour, minute: _minute);
+                        Activity _selectedActivity =
+                        _activities[_selectedActivityIndex];
+
+                        await EntrySwitchHandler.handleSwitch(
+                            _entries,
+                            _selectedActivity,
+                            _selTime,
+                            DateUtils.dateOnly(DateTime.now()))
+                            .then((val) async {
+                          lastSwitchDebugLog = val;
+                          await updateData(true, true);
+                        }).catchError((e) {
+                          showInfo(e.toString());
+                        });
+                      },
+                      child: Text('Switch',
+                          style: Theme.of(context).textTheme.caption)),
+                ),
               ]),
               Center(
                 child: LimitedBox(
@@ -695,7 +708,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     TextButton(
-                        child: Text('My Activities',
+                        child: Text('+ Activity',
                             style: Theme.of(context).textTheme.caption),
                         onPressed: () => {
                               Navigator.push(
@@ -705,30 +718,20 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                                               ActivityManager(_activities)))
                                   .then(onNavigateHere)
                             }),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: ElevatedButton(
-                          onPressed: () async {
-                            TimeOfDay _selTime =
-                                TimeOfDay(hour: _hour, minute: _minute);
-                            Activity _selectedActivity =
-                                _activities[_selectedActivityIndex];
-
-                            await EntrySwitchHandler.handleSwitch(
-                                    _entries,
-                                    _selectedActivity,
-                                    _selTime,
-                                    DateUtils.dateOnly(DateTime.now()))
-                                .then((val) async {
-                              lastSwitchDebugLog = val;
-                              await updateData(true, true);
-                            }).catchError((e) {
-                              showInfo(e.toString());
-                            });
-                          },
-                          child: Text('Switch',
-                              style: Theme.of(context).textTheme.caption)),
-                    ),
+                    TextButton(
+                        onPressed: () {
+                          showDebugInfo(context);
+                          showInfo(lastSwitchDebugLog);
+                        },
+                        child: Text('DBG')),
+                    TextButton(
+                        onPressed: () async {
+                          await DBClient.instance.deleteEntriesByDate(
+                              DateUtils.dateOnly(DateTime.now()));
+                          //await DBClient.instance.deleteAllActivities();
+                          await updateData(true, true);
+                        },
+                        child: Text('CLR')),
                   ],
                 ),
               ),
