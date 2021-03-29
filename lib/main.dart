@@ -43,7 +43,7 @@ class EazyTime extends StatelessWidget {
           primaryColor: Colors.white,
           brightness: Brightness.light,
           backgroundColor: Colors.white,
-          accentColor: Colors.white,
+          accentColor: Colors.blue,
           accentIconTheme: IconThemeData(color: Colors.black),
           dividerColor: Colors.grey.withOpacity(0.2)),
       darkTheme: ThemeData(
@@ -57,12 +57,12 @@ class EazyTime extends StatelessWidget {
             headline4: LegendTextStyle(Colors.white),
             headline5: NormalTextStyleBold(Colors.white)
           ),
-          primarySwatch: Colors.purple,
+          primarySwatch: Colors.blue,
           fontFamily: 'Roboto',
           secondaryHeaderColor: Colors.white,
           brightness: Brightness.dark,
           backgroundColor: Colors.black,
-          accentColor: Colors.purple,
+          accentColor: Colors.blue,
           accentIconTheme: IconThemeData(color: Colors.yellow),
           dividerColor: Colors.grey.withOpacity(0.15)),
       themeMode: ThemeMode.system,
@@ -440,33 +440,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     return PartialPieChart(chartData, passedFractionOfDay, animate: false);
   }
 
-
-  Future<Widget> buildHistoryChartAll(BuildContext context) async {
-    // This method is commented as it does quite a bit of data transformation.
-    // Get all existing entries from db.
-    List<ActivityEntry> allEntries = await DBClient.instance.getAllEntries();
-
-    // Group entries by date.
-    Map<DateTime, List<ActivityEntry>> entriesByDate =
-    allEntries.groupBy<DateTime>((e) => DateUtils.dateOnly(e.date));
-    // Update hist chart bar count
-    historyChartBarCount = entriesByDate.keys.length;
-
-    // Declare and fill the data structure needed to plot the data at hand.
-    List<charts.Series<ActivityEntry, String>> data = [];
-    for (var entry in entriesByDate.entries) {
-      data.add(new charts.Series<ActivityEntry, String>(
-          id: entry.key.toSimpleString(),
-          domainFn: (ActivityEntry act, _) => act.date.toSimpleString(),
-          measureFn: (ActivityEntry act, _) => act.fractionOfDay() * 24,
-          colorFn: (ActivityEntry act, _) =>
-              charts.ColorUtil.fromDartColor(Color(act.color)),
-          data: entry.value));
-    }
-
-    return StackedBarChart(data, animate: true);
-  }
-
   Widget? buildStackedChart(BuildContext context) {
     if (_entries.isEmpty)
       return Text('No data found', style: SecondaryTextStyle(Colors.grey));
@@ -705,39 +678,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     );
   }
 
-  Widget buildHistoryPage(BuildContext context) {
-    return Container(
-        alignment: Alignment.center,
-        child:
-            Column(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-          Flexible(
-            flex: 2,
-            child: SingleChildScrollView(
-              controller: _histChartScroller,
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(
-                width: historyChartBarCount * 100,
-                child: FutureBuilder<Widget>(
-                    future: buildHistoryChartAll(context),
-                    builder:
-                        (BuildContext context, AsyncSnapshot<Widget> snapshot) {
-                      if (snapshot.hasData) {
-                        return snapshot.data!;
-                      } else {
-                        return Text('Retrieving data ...',
-                            style: SecondaryTextStyle(Colors.black));
-                      }
-                    }),
-              ),
-            ),
-          ),
-          Flexible(
-              flex: 1, child: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-              child: Wrap(children: buildActivityLegend(context, _activities))))
-        ]));
-  }
-
   Widget buildAllTimeStatsPage(BuildContext context) {
     return Container(
       height: 800,
@@ -837,9 +777,9 @@ class _HistoryPageState extends State<HistoryPage> {
               title: Text('Show absolute portions',
                   style: Theme.of(context).textTheme.headline1!),
               value: _showAbsolutePortions,
-              activeColor: Colors.black,
+              activeColor: Theme.of(context).accentColor,
               checkColor: Colors.white,
-
+              controlAffinity: ListTileControlAffinity.leading,
               onChanged: (bool? newValue) {
                 if (newValue == null) {
                   return;
