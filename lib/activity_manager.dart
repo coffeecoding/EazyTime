@@ -169,7 +169,7 @@ class _ActivityManagerState extends State<ActivityManager> {
     else {
       // Check if it exists in database and is inactive
       Activity? existingInactive = await DBClient.instance.existsActivityWithName(text);
-      if (existingInactive != null) {
+      if (existingInactive != null && existingInactive.isActive == 0) {
         existingInactive.isActive = 1;
         existingInactive.color = nextColor;
         await DBClient.instance.updateActivity(existingInactive);

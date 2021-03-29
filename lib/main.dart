@@ -64,7 +64,7 @@ class EazyTime extends StatelessWidget {
           backgroundColor: Colors.black,
           accentColor: Colors.purple,
           accentIconTheme: IconThemeData(color: Colors.yellow),
-          dividerColor: Colors.grey.withOpacity(0.2)),
+          dividerColor: Colors.grey.withOpacity(0.15)),
       themeMode: ThemeMode.system,
       home: MyHomePage(
         title: 'Flutter Demo Home Page',
@@ -200,13 +200,11 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                             begin: FractionalOffset.topCenter,
                             end: FractionalOffset.bottomCenter,
                             colors: [
-                          Theme.of(context).backgroundColor,
                           Theme.of(context).dividerColor.withOpacity(0.1),
-                          Theme.of(context).dividerColor.withOpacity(0.5)
+                          Theme.of(context).backgroundColor.withOpacity(0),
                         ],
                             stops: [
                           0.0,
-                          0.95,
                           1.0
                         ])),
                     child: Column(
@@ -225,6 +223,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   ),
                   Divider(height: 1.0),
                   ListTile(
+                      tileColor: Theme.of(context).accentColor.withOpacity(
+                          currentPage == DisplayedPage.home ? 0.3 : 0),
                       leading: Icon(currentPage == DisplayedPage.home
                           ? Icons.pie_chart
                           : Icons.pie_chart_outline_sharp),
@@ -241,6 +241,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                               : Theme.of(context).textTheme.bodyText2))),
                   Divider(height: 1.0),
                   ListTile(
+                      tileColor: Theme.of(context).accentColor.withOpacity(
+                          currentPage == DisplayedPage.history ? 0.3 : 0),
                       leading: Icon(currentPage == DisplayedPage.history
                           ? Icons.bar_chart
                           : Icons.bar_chart_outlined),
@@ -257,6 +259,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                                   : Theme.of(context).textTheme.bodyText2))),
                   Divider(height: 1.0),
                   ListTile(
+                      tileColor: Theme.of(context).accentColor.withOpacity(
+                          currentPage == DisplayedPage.allTimeStats ? 0.3 : 0),
                       leading: Icon(currentPage == DisplayedPage.allTimeStats
                           ? Icons.analytics
                           : Icons.analytics_outlined),
@@ -274,6 +278,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   Divider(height: 1.0),
                   Divider(height: 1.0),
                   ListTile(
+                      tileColor: Theme.of(context).accentColor.withOpacity(
+                          currentPage == DisplayedPage.preferences ? 0.3 : 0),
                       leading: Icon(currentPage == DisplayedPage.preferences
                           ? Icons.settings
                           : Icons.settings_outlined),
@@ -290,6 +296,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                                   : Theme.of(context).textTheme.bodyText2))),
                   Divider(height: 1.0),
                   ListTile(
+                      tileColor: Theme.of(context).accentColor.withOpacity(
+                        currentPage == DisplayedPage.help ? 0.3 : 0),
                       leading: Icon(currentPage == DisplayedPage.help
                           ? Icons.help
                           : Icons.help_outline),
@@ -305,15 +313,20 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                                   ? Theme.of(context).textTheme.headline5
                                   : Theme.of(context).textTheme.bodyText2))),
                   Divider(height: 1.0),
-                  Divider(height: 1.0),
                   ListTile(
                       leading: Icon(currentPage == DisplayedPage.about
                           ? Icons.info
                           : Icons.info_outline),
                       onTap: () {
-                        currentPage = DisplayedPage.about;
-                        setState(() {});
                         Navigator.pop(context);
+                        showAboutDialog(
+                          context: context,
+                          applicationName: 'EasyTimetracker',
+                          applicationVersion: '1.0.0',
+                          applicationIcon: Icon(Icons.art_track),
+                          applicationLegalese: 'Made by YousufCodes 2021\n'
+                            'www.yousufcodes.com'
+                        );
                       },
                       title: Container(
                           alignment: Alignment.centerLeft,
@@ -817,7 +830,7 @@ class _HistoryPageState extends State<HistoryPage> {
     return Container(
         alignment: Alignment.center,
         child:
-        Column(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+        Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Flexible(
             flex: 2,
             child: CheckboxListTile(
@@ -837,7 +850,7 @@ class _HistoryPageState extends State<HistoryPage> {
             )
           ),
           Flexible(
-            flex: 5,
+            flex: 9,
             child: SingleChildScrollView(
               controller: _histChartScroller,
               scrollDirection: Axis.horizontal,
