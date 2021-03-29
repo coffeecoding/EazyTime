@@ -65,7 +65,7 @@ class EazyTime extends StatelessWidget {
           accentColor: Colors.purple,
           accentIconTheme: IconThemeData(color: Colors.yellow),
           dividerColor: Colors.grey.withOpacity(0.2)),
-      themeMode: ThemeMode.dark,
+      themeMode: ThemeMode.system,
       home: MyHomePage(
         title: 'Flutter Demo Home Page',
         key: Key('Test'),
@@ -156,7 +156,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       case DisplayedPage.history:
         {
           _title = 'History';
-          _body = buildHistoryPage(context);
+          _body = HistoryPage();
           break;
         }
       case DisplayedPage.allTimeStats:
@@ -354,14 +354,14 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     setState(() {});
   }
 
-  List<Widget> buildActivityLegend(List<Activity> activities) {
-    return activities.map((i) => buildActivityLegendItem(i, i.name)).toList();
+  List<Widget> buildActivityLegend(BuildContext context, List<Activity> activities) {
+    return activities.map((i) => buildActivityLegendItem(context, i, i.name)).toList();
   }
 
-  List<Widget> buildActivityPortionLegend(List<ActivityEntry> entries) {
+  List<Widget> buildActivityPortionLegend(BuildContext context, List<ActivityEntry> entries) {
     Map<String, ActivityPortion> map = getPortionsByName(entries);
     return map.entries
-        .map((e) => buildActivityLegendItem(e.value,
+        .map((e) => buildActivityLegendItem(context, e.value,
             '${e.value.name} ${(e.value.portion * 100 / 24).toStringAsFixed(1)} %'))
         .toList();
   }
@@ -427,50 +427,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     return PartialPieChart(chartData, passedFractionOfDay, animate: false);
   }
 
-  Future<Widget> buildHistoryChart(BuildContext context) async {
-    // This method is commented as it does quite a bit of data transformation.
-    // Get all existing entries from db.
-    List<ActivityEntry> allEntries = await DBClient.instance.getAllEntries();
-
-    // Group entries by date.
-    Map<DateTime, List<ActivityEntry>> entriesByDate =
-        allEntries.groupBy<DateTime>((e) => DateUtils.dateOnly(e.date));
-
-    // For each date, get the absolute portions for each activity.
-    Map<DateTime, List<ActivityPortion>> portionsByDate = {};
-    entriesByDate.entries.forEach((e) {
-      Map<String, ActivityPortion> portionByName = getPortionsByName(e.value);
-      List<ActivityPortion> portions = portionByName.values.toList();
-      portionsByDate.putIfAbsent(e.key, () => portions);
-    });
-
-    // Get a list of all portions from all days.
-    List<ActivityPortion> allPortions =
-        portionsByDate.values.reduce((all, list) => all + list);
-
-    // Group list of all portions by activity name, so that we get the data in
-    // the form that charts package needs to plot the stacked bar graph. That
-    // is, for each activity, a series of portions, each associated with a date.
-    Map<String, List<ActivityPortion>> portionSeriesByName =
-        allPortions.groupBy<String>((portion) => portion.name);
-
-    // Update hist chart bar count
-    historyChartBarCount = portionSeriesByName.keys.length;
-
-    // Declare and fill the data structure needed to plot the data at hand.
-    List<charts.Series<ActivityPortion, String>> data = [];
-    for (var entry in portionSeriesByName.entries) {
-      data.add(new charts.Series<ActivityPortion, String>(
-          id: entry.key,
-          domainFn: (ActivityPortion act, _) => act.dateTime!.toSimpleString(),
-          measureFn: (ActivityPortion act, _) => act.portion,
-          colorFn: (ActivityPortion act, _) =>
-              charts.ColorUtil.fromDartColor(Color(act.color)),
-          data: entry.value));
-    }
-
-    return StackedBarChart(data, animate: true);
-  }
 
   Future<Widget> buildHistoryChartAll(BuildContext context) async {
     // This method is commented as it does quite a bit of data transformation.
@@ -518,38 +474,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       ));
     }
     return StackedBarChart(data, animate: true);
-  }
-
-  Map<String, ActivityPortion> getPortionsByName(List<ActivityEntry> entries) {
-    Map<String, ActivityPortion> _portionByName = {};
-    for (ActivityEntry _entry in entries) {
-      if (_portionByName.containsKey(_entry.name))
-        _portionByName[_entry.name]!.portion += (_entry.fractionOfDay() * 24);
-      else
-        _portionByName[_entry.name] = ActivityPortion(
-            _entry.activity, _entry.fractionOfDay() * 24, _entry.date);
-    }
-    return _portionByName;
-  }
-
-  /// Parameter text is not necessary if we only want to display the name of
-  /// the activity. However, for some legends we may want to display additional
-  /// information such as percentage of day in the stacked chart for today.
-  Widget buildActivityLegendItem(IActivityProperties activity, String text) {
-    return Container(
-      height: 30,
-      width: 90,
-      child: Row(
-        children: [
-          Container(
-              height: 18,
-              width: 18,
-              margin: EdgeInsets.only(right: 4.0),
-              color: Color(activity.color)),
-          Text(text, style: Theme.of(context).textTheme.headline4)
-        ],
-      ),
-    );
   }
 
   Widget buildStartTime(BuildContext context) {
@@ -780,7 +704,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
               scrollDirection: Axis.horizontal,
               child: SizedBox(
                 width: historyChartBarCount * 100,
-                height: 400,
                 child: FutureBuilder<Widget>(
                     future: buildHistoryChartAll(context),
                     builder:
@@ -796,7 +719,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             ),
           ),
           Flexible(
-              flex: 1, child: Wrap(children: buildActivityLegend(_activities)))
+              flex: 1, child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+              child: Wrap(children: buildActivityLegend(context, _activities))))
         ]));
   }
 
@@ -832,5 +757,201 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         ]
       ),
     );
+  }
+}
+
+
+/// Parameter text is not necessary if we only want to display the name of
+/// the activity. However, for some legends we may want to display additional
+/// information such as percentage of day in the stacked chart for today.
+Widget buildActivityLegendItem(BuildContext context, IActivityProperties activity, String text) {
+  return Container(
+    height: 30,
+    width: 90,
+    child: Row(
+      children: [
+        Container(
+            height: 18,
+            width: 18,
+            margin: EdgeInsets.only(right: 4.0),
+            color: Color(activity.color)),
+        Text(text, style: Theme.of(context).textTheme.headline4)
+      ],
+    ),
+  );
+}
+
+Future<Widget> buildActivityLegend(BuildContext context) async {
+  List<Activity> _activities = await DBClient.instance.getDistinctUsedActivities();
+  return Wrap(children:
+    _activities.map((i) => buildActivityLegendItem(context, i, i.name)).toList()
+  );
+}
+
+Map<String, ActivityPortion> getPortionsByName(List<ActivityEntry> entries) {
+  Map<String, ActivityPortion> _portionByName = {};
+  for (ActivityEntry _entry in entries) {
+    if (_portionByName.containsKey(_entry.name))
+      _portionByName[_entry.name]!.portion += (_entry.fractionOfDay() * 24);
+    else
+      _portionByName[_entry.name] = ActivityPortion(
+          _entry.activity, _entry.fractionOfDay() * 24, _entry.date);
+  }
+  return _portionByName;
+}
+
+class HistoryPage extends StatefulWidget {
+  @override
+  _HistoryPageState createState() => _HistoryPageState();
+}
+
+class _HistoryPageState extends State<HistoryPage> {
+
+  bool _showAbsolutePortions = false;
+  ScrollController _histChartScroller =
+    ScrollController(keepScrollOffset: true);
+  int historyChartBarCount = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        alignment: Alignment.center,
+        child:
+        Column(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+          Flexible(
+            flex: 2,
+            child: CheckboxListTile(
+              title: Text('Show absolute portions',
+                  style: Theme.of(context).textTheme.headline1!),
+              value: _showAbsolutePortions,
+              activeColor: Colors.black,
+              checkColor: Colors.white,
+
+              onChanged: (bool? newValue) {
+                if (newValue == null) {
+                  return;
+                }
+                _showAbsolutePortions = newValue;
+                setState(() {});
+              },
+            )
+          ),
+          Flexible(
+            flex: 5,
+            child: SingleChildScrollView(
+              controller: _histChartScroller,
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(
+                width: historyChartBarCount * 100,
+                child: FutureBuilder<Widget>(
+                    future: _showAbsolutePortions
+                      ? buildHistoryChartAbsolute(context)
+                      : buildHistoryChart(context),
+                    builder:
+                        (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+                      if (snapshot.hasData) {
+                        return snapshot.data!;
+                      } else {
+                        return Center(
+                          child: SizedBox(
+                            height: 40, width: 100,
+                            child: CircularProgressIndicator(
+                              value: 10,
+                              strokeWidth: 2,
+                              backgroundColor: Colors.blue,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.red)),
+                          ),
+                        );
+                      }
+                    }),
+              ),
+            ),
+          ),
+          Flexible(
+              flex: 2, child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: FutureBuilder<Widget>(
+                future: buildActivityLegend(context),
+                builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+                  if (snapshot.hasData) {
+                    return snapshot.data!;
+                  } else {
+                    return Text('Retrieving data ...',
+                    style: SecondaryTextStyle(Colors.black));
+                  }
+                },
+              )))
+        ]));
+  }
+
+  Future<Widget> buildHistoryChartAbsolute(BuildContext context) async {
+    // This method is commented as it does quite a bit of data transformation.
+    // Get all existing entries from db.
+    List<ActivityEntry> allEntries = await DBClient.instance.getAllEntries();
+
+    // Group entries by date.
+    Map<DateTime, List<ActivityEntry>> entriesByDate =
+    allEntries.groupBy<DateTime>((e) => DateUtils.dateOnly(e.date));
+
+    // For each date, get the absolute portions for each activity.
+    Map<DateTime, List<ActivityPortion>> portionsByDate = {};
+    entriesByDate.entries.forEach((e) {
+      Map<String, ActivityPortion> portionByName = getPortionsByName(e.value);
+      List<ActivityPortion> portions = portionByName.values.toList();
+      portionsByDate.putIfAbsent(e.key, () => portions);
+    });
+
+    // Get a list of all portions from all days.
+    List<ActivityPortion> allPortions =
+    portionsByDate.values.reduce((all, list) => all + list);
+
+    // Group list of all portions by activity name, so that we get the data in
+    // the form that charts package needs to plot the stacked bar graph. That
+    // is, for each activity, a series of portions, each associated with a date.
+    Map<String, List<ActivityPortion>> portionSeriesByName =
+    allPortions.groupBy<String>((portion) => portion.name);
+
+    // Update hist chart bar count
+    historyChartBarCount = entriesByDate.keys.length;
+
+    // Declare and fill the data structure needed to plot the data at hand.
+    List<charts.Series<ActivityPortion, String>> data = [];
+    for (var entry in portionSeriesByName.entries) {
+      data.add(new charts.Series<ActivityPortion, String>(
+          id: entry.key,
+          domainFn: (ActivityPortion act, _) => act.dateTime!.toSimpleString(),
+          measureFn: (ActivityPortion act, _) => act.portion,
+          colorFn: (ActivityPortion act, _) =>
+              charts.ColorUtil.fromDartColor(Color(act.color)),
+          data: entry.value));
+    }
+
+    return StackedBarChart(data, animate: true);
+  }
+
+  Future<Widget> buildHistoryChart(BuildContext context) async {
+    // This method is commented as it does quite a bit of data transformation.
+    // Get all existing entries from db.
+    List<ActivityEntry> allEntries = await DBClient.instance.getAllEntries();
+
+    // Group entries by date.
+    Map<DateTime, List<ActivityEntry>> entriesByDate =
+    allEntries.groupBy<DateTime>((e) => DateUtils.dateOnly(e.date));
+    // Update hist chart bar count
+    historyChartBarCount = entriesByDate.keys.length;
+
+    // Declare and fill the data structure needed to plot the data at hand.
+    List<charts.Series<ActivityEntry, String>> data = [];
+    for (var entry in entriesByDate.entries) {
+      data.add(new charts.Series<ActivityEntry, String>(
+          id: entry.key.toSimpleString(),
+          domainFn: (ActivityEntry act, _) => act.date.toSimpleString(),
+          measureFn: (ActivityEntry act, _) => act.fractionOfDay() * 24,
+          colorFn: (ActivityEntry act, _) =>
+              charts.ColorUtil.fromDartColor(Color(act.color)),
+          data: entry.value));
+    }
+
+    return StackedBarChart(data, animate: true);
   }
 }

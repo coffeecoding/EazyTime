@@ -184,6 +184,23 @@ class DBClient {
     await db.delete('entries', where: "entryId = ?", whereArgs: [entry.id]);
   }
 
+  Future<List<Activity>> getDistinctUsedActivities() async {
+    final Database db = await database;
+
+    final List<Map<String, dynamic>> maps = await db.rawQuery('SELECT DISTINCT '
+        ' activities.activityId, name, color FROM entries INNER JOIN activities'
+        ' ON activities.activityId = entries.activityId');
+
+    List<Activity> result = List.generate(maps.length, (i) {
+      return Activity(
+        maps[i]['name'],
+        maps[i]['color'],
+        maps[i]['activityId']
+      );
+    });
+    return result;
+  }
+
   Future<List<ActivityEntry>> getAllEntries() async {
     final Database db = await database;
 
