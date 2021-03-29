@@ -211,7 +211,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                       children: [
                         Padding(
                           padding: EdgeInsets.only(top: 10.0),
-                          child: Image.asset('assets/logo4.png',
+                          child: Image.asset('assets/logo5.png',
                               height: 80, width: 120, fit: BoxFit.fitHeight),
                         ),
                         Text('EasyTimetracker',
