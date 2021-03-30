@@ -120,7 +120,11 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     }
     if (updateEntries) {
       _entries = await DBClient.instance.getEntriesByDate(DateTime.now());
-      await EntrySwitchHandler.refreshEntries(_entries);
+      lastSwitchDebugLog += await EntrySwitchHandler.updateLocalEntries(_entries);
+    }
+    if (_entries.isNotEmpty) {
+      _hour = _entries.last.end.hour;
+      _minute = _entries.last.end.minute;
     }
     setState(() {});
   }
@@ -136,7 +140,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     }
 
     // Periodically set State
-    _everyMinute = Timer.periodic(Duration(minutes: 1), (Timer t) async {
+    _everyMinute = Timer.periodic(Duration(minutes: 4), (Timer t) async {
       updateData(true);
       setState(() {});
     });
@@ -211,7 +215,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                       children: [
                         Padding(
                           padding: EdgeInsets.only(top: 10.0),
-                          child: Image.asset('assets/logo5.png',
+                          child: Image.asset('assets/logo_strong.png',
                               height: 80, width: 120, fit: BoxFit.fitHeight),
                         ),
                         Text('EasyTimetracker',
@@ -275,7 +279,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                               style: currentPage == DisplayedPage.allTimeStats
                                   ? Theme.of(context).textTheme.headline5
                                   : Theme.of(context).textTheme.bodyText2))),
-                  Divider(height: 1.0),
                   Divider(height: 1.0),
                   ListTile(
                       tileColor: Theme.of(context).accentColor.withOpacity(
@@ -622,7 +625,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                             _selTime,
                             DateUtils.dateOnly(DateTime.now()))
                             .then((val) async {
-                          lastSwitchDebugLog = val;
+                          lastSwitchDebugLog += val;
                           await updateData(true, true);
                         }).catchError((e) {
                           showInfo(e.toString());

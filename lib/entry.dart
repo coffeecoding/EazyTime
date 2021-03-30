@@ -10,19 +10,20 @@ class ActivityEntry extends IActivityProperties {
   final int? activityId;
   final int? id;
   Activity activity;
+  int committed;
 
   String get name => activity.name;
   int get color => activity.color;
 
   ActivityEntry(this.activity, this.date,
       [this.start = const TimeOfDay(hour: 0, minute: 0),
-      this.end = const TimeOfDay(hour: 0, minute: 0), this.activityId, this.id]);
+      this.end = const TimeOfDay(hour: 0, minute: 0), this.activityId, this.id, this.committed = 0]);
 
   double fractionOfDay() => ((end.hour * 60 + end.minute) -
       (start.hour * 60 + start.minute)) / 1440;
 
   @override
-  String toString() => '${this.activity.name} '
+  String toString() => '${this.activity.name} $committed '
       '${this.date.month}-${this.date.day}: '
       '${start.display()} to ${end.display()} '
       '(${fractionOfDay().toStringAsFixed(2)})';
@@ -39,7 +40,8 @@ class ActivityEntry extends IActivityProperties {
       'activityId': activity.id,
       'date': DateTimeUtils.dateToString(date),
       'startTime': DateTimeUtils.timeToString(start),
-      'endTime': DateTimeUtils.timeToString(end)
+      'endTime': DateTimeUtils.timeToString(end),
+      'committed': committed
     };
   }
 }

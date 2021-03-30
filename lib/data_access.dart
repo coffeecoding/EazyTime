@@ -31,17 +31,17 @@ class DBClient {
           'CREATE TABLE activities(activityId INTEGER PRIMARY KEY, name TEXT, color INTEGER, isActive INTEGER DEFAULT 0);'
         );
         await db.execute(
-          'CREATE TABLE entries(entryId INTEGER PRIMARY KEY, activityId INTEGER, date TEXT, startTime TEXT, endTime TEXT);'
+          'CREATE TABLE entries(entryId INTEGER PRIMARY KEY, activityId INTEGER, date TEXT, startTime TEXT, endTime TEXT, committed INTEGER DEFAULT 0);'
         );
       },
 
       onUpgrade: (db, oldVer, newVer) async {
         return await db.execute(
-            'CREATE TABLE entries(entryId INTEGER PRIMARY KEY, activityId INTEGER, date TEXT, startTime TEXT, endTime TEXT);'
+            'ALTER TABLE entries ADD COLUMN committed INTEGER DEFAULT 0;'
         );
       },
 
-      version: 3,
+      version: 4,
     );
   }
 
@@ -184,6 +184,8 @@ class DBClient {
     await db.delete('entries', where: "entryId = ?", whereArgs: [entry.id]);
   }
 
+  /// Gets all activities that have been used at least once, i.e. >= 1 entry
+  /// exist where entry.activity is that activity
   Future<List<Activity>> getDistinctUsedActivities() async {
     final Database db = await database;
 
@@ -214,7 +216,8 @@ class DBClient {
         DateTimeUtils.parseTime(maps[i]['startTime']),
         DateTimeUtils.parseTime(maps[i]['endTime']),
         maps[i]['activityId'],
-        maps[i]['entryId']
+        maps[i]['entryId'],
+        maps[i]['committed']
       );
     });
     return result;
@@ -227,6 +230,28 @@ class DBClient {
 
     allEntries.sort((a,b) => a.date.compareTo(b.date));
     return allEntries.last;
+  }
+
+  Future<List<ActivityEntry>> getAllOpenEntries() async {
+    final Database db = await database;
+
+    final List<Map<String, dynamic>> maps = await db.rawQuery('SELECT * '
+        'FROM entries INNER JOIN activities ON activities.activityId = entries.activityId '
+        'WHERE committed = 0');
+
+    List<ActivityEntry> result = List.generate(maps.length, (i) {
+      return ActivityEntry(
+          Activity(maps[i]['name'], maps[i]['color'], maps[i]['activityId'], maps[i]['isActive']),
+          DateTime.parse(maps[i]['date']),
+          DateTimeUtils.parseTime(maps[i]['startTime']),
+          DateTimeUtils.parseTime(maps[i]['endTime']),
+          maps[i]['activityId'],
+          maps[i]['entryId'],
+          maps[i]['committed']
+      );
+    });
+
+    return result;
   }
 
   Future<List<ActivityEntry>> getEntriesByDateString(String date) async {
@@ -243,7 +268,8 @@ class DBClient {
           DateTimeUtils.parseTime(maps[i]['startTime']),
           DateTimeUtils.parseTime(maps[i]['endTime']),
           maps[i]['activityId'],
-          maps[i]['entryId']
+          maps[i]['entryId'],
+          maps[i]['committed']
       );
     });
 
@@ -266,7 +292,8 @@ class DBClient {
           DateTimeUtils.parseTime(maps[i]['startTime']),
           DateTimeUtils.parseTime(maps[i]['endTime']),
           maps[i]['activityId'],
-          maps[i]['entryId']
+          maps[i]['entryId'],
+          maps[i]['committed']
       );
     });
 
