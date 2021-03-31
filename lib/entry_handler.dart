@@ -4,8 +4,6 @@ import 'entry.dart';
 import 'time_extensions.dart';
 import 'activity.dart';
 import 'datetime_utils.dart';
-import 'entry.dart';
-import 'time_extensions.dart';
 import 'extensions.dart';
 
 class EntrySwitchHandler {
@@ -77,7 +75,7 @@ class EntrySwitchHandler {
         await DBClient.instance.updateEntry(entry);
       }
       ActivityEntry lastEntryThatDay = e.value.last;
-      lastEntryThatDay.end = TimeOfDay(hour: 24, minute: 0);;
+      lastEntryThatDay.end = TimeOfDay(hour: 24, minute: 0);
       lastEntryThatDay.committed = 1;
       await DBClient.instance.updateEntry(lastEntryThatDay);
     });

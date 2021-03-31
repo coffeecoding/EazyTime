@@ -211,10 +211,6 @@ class _ActivityManagerState extends State<ActivityManager> {
     setState(() {});
   }
 
-  void _sortActivities() {
-    activities.sort((a,b) => a.name.compareTo(b.name));
-  }
-
   void alert(BuildContext context, String info) {
     showDialog(
         context: context,

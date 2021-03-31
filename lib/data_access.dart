@@ -303,7 +303,6 @@ class DBClient {
   }
   
   Future<String> inspectDatabase() async {
-    final Database db = await database;
     String result = 'Db contents: \n';
     
     List<Activity> acts = await getAllActivities();

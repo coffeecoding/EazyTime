@@ -8,7 +8,6 @@ import 'package:flutter_eazytime/styles.dart';
 import 'activity.dart';
 import 'activity_manager.dart';
 import 'data_access.dart';
-import 'sample_data.dart' as mysamples;
 import 'entry.dart';
 import 'entry_handler.dart';
 import 'styles.dart';
@@ -91,18 +90,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     updateData(true, true);
   }
 
-  _MyHomePageState.withSampleData() : currentPage = DisplayedPage.home {
-    //_activityHistories = mysamples.SampleData.getSampleHistory();
-    _activities = mysamples.SampleData.getActivities();
-    _entries = mysamples.SampleData.getSampleEntries();
-  }
-
   int _hour = 0;
   int _minute = 0;
   int _selectedActivityIndex = 0;
 
-  ScrollController _histChartScroller =
-      ScrollController(keepScrollOffset: true);
   int historyChartBarCount = 0;
 
   List<Activity> _activities = [];
@@ -110,6 +101,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   String lastSwitchDebugLog = "";
 
+  // ignore: unused_field
   Timer? _everyMinute;
   DisplayedPage currentPage;
 
@@ -593,7 +585,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         "\n";
     info += Colors.red.value.toString() + "\n";
     Color x = new Color(Colors.red.value);
-    Color y = Colors.red;
     info += x.toString() + "\n";
 
     info = await DBClient.instance.inspectDatabase();

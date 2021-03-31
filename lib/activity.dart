@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 
 abstract class IActivityProperties {
   String get name;
