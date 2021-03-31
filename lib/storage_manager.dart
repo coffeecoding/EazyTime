@@ -1,5 +1,9 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+enum SMKey {
+  twelveHourClock, showStartTimes, showHoursInStats
+}
+
 class StorageManager {
   static void saveData(String key, dynamic value) async {
     final prefs = await SharedPreferences.getInstance();

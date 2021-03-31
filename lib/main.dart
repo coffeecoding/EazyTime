@@ -16,6 +16,7 @@ import 'time_extensions.dart';
 import 'extensions.dart';
 import 'datetime_utils.dart';
 import 'dart:async';
+import 'storage_manager.dart';
 
 void main() {
   runApp(EazyTime());
@@ -64,7 +65,7 @@ class EazyTime extends StatelessWidget {
           backgroundColor: Colors.black,
           accentColor: Colors.blue,
           accentIconTheme: IconThemeData(color: Colors.yellow),
-          dividerColor: Colors.grey.withOpacity(0.15)),
+          dividerColor: Colors.grey.withOpacity(0.33)),
       themeMode: ThemeMode.system,
       home: MyHomePage(
         title: 'Flutter Demo Home Page',
@@ -182,7 +183,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       case DisplayedPage.preferences:
         {
           _title = 'Preferences';
-          _body = buildHomePage(context);
+          _body = SettingsPage();
           break;
         }
     }
@@ -447,9 +448,12 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     return SimplePieChart(_series, animate: true);
   }
 
-  Widget? buildEntryChart(BuildContext context) {
+  Future<Widget> buildEntryChart(BuildContext context) async {
     if (_entries.isEmpty)
       return Text('No entries found', style: SecondaryTextStyle(Colors.grey));
+
+    bool showStartTimes =
+      await StorageManager.readData(SMKey.showStartTimes.toString());
 
     List<charts.Series<ActivityEntry, int>> chartData = [
       new charts.Series<ActivityEntry, int>(
@@ -460,7 +464,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         colorFn: (ActivityEntry act, _) =>
             charts.ColorUtil.fromDartColor(Color(act.color)),
         labelAccessorFn: (ActivityEntry act, _) =>
-            '${act.name} (${act.start.display()})',
+            '${act.name}' + (showStartTimes ? ' (${act.start.display()})' : ''),
       )
     ];
 
@@ -620,7 +624,20 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                 alignment: Alignment.center,
                 child: Padding(
                     padding: EdgeInsets.all(32.0),
-                    child: Center(child: buildEntryChart(context))))),
+                    child: FutureBuilder<Widget>(
+                      future: buildEntryChart(context),
+                      builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+                        if (snapshot.hasData) {
+                          return snapshot.data!;
+                        } else {
+                          return Text('Retrieving data ...',
+                              style: Theme.of(context).textTheme.headline2);
+                        }
+                      }
+                    ),
+                ),
+            ),
+        ),
         Flexible(
           child: Column(
             children: [
@@ -792,6 +809,50 @@ Map<String, ActivityPortion> getPortionsByName(List<ActivityEntry> entries) {
   return _portionByName;
 }
 
+class SettingsPage extends StatefulWidget {
+  @override
+  _SettingsPageState createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+
+  late bool _showStartTime = false;
+
+  @override
+  void initState() {
+    super.initState();
+    loadSettings();
+  }
+
+  void loadSettings() async {
+    _showStartTime = await StorageManager.readData(SMKey.showStartTimes.toString());
+    setState(() {
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+        children: [
+          SwitchListTile(
+              controlAffinity: ListTileControlAffinity.trailing,
+              title: Text('Show start times in pie chart', style:
+              Theme.of(context).textTheme.bodyText2),
+              value: _showStartTime,
+              activeColor: Theme.of(context).accentColor,
+              onChanged: (newVal) {
+                _showStartTime = newVal;
+                StorageManager.saveData(SMKey.showStartTimes.toString(),
+                    newVal);
+                setState(() {
+                });
+              }),
+          Divider(height: 1.0),
+        ]
+    );
+  }
+}
+
 class HistoryPage extends StatefulWidget {
   @override
   _HistoryPageState createState() => _HistoryPageState();
@@ -814,7 +875,7 @@ class _HistoryPageState extends State<HistoryPage> {
             flex: 2,
             child: CheckboxListTile(
               title: Text('Show absolute portions',
-                  style: Theme.of(context).textTheme.headline1!),
+                  style: Theme.of(context).textTheme.headline1),
               value: _showAbsolutePortions,
               activeColor: Theme.of(context).accentColor,
               checkColor: Colors.white,

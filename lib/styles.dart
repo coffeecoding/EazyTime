@@ -108,6 +108,7 @@ class ColorSpec {
 
   static Color randomColor() {
     String hexAlpha = 'FF';
+    // Since color encoding of 'Color' class is 'aarrggbb', we add alpha first
     String result = hexAlpha;
     // We need 3 color components: R, G, and B; the fourth one would be alpha
     // but we do not want random alpha, so we set fix it, see hexAlpha above.
@@ -119,8 +120,7 @@ class ColorSpec {
     while (components.isNotEmpty) {
       int nextIndex = rng.nextInt(components.length);
       if (components[nextIndex] == '0') {
-        // get random number between 128 and 255 incl, corresponding to
-        // the range of 0x42 and 0xff, which will be the third component
+        // get random value in a certain upper range of offset-255
         int rangeOf255 = 128;
         int offset = 128;
         int nextComponent = rng.nextInt(rangeOf255);
@@ -130,8 +130,7 @@ class ColorSpec {
         components.removeLast();
       }
       else if (components[nextIndex] == '1') {
-        // get random number between 128 and 255 incl, corresponding to
-        // the range of 0x42 and 0xff, which will be the third component
+        // get random value in a certain upper range of offset-255
         int rangeOf255 = 160;
         int offset = 92;
         int nextComponent = rng.nextInt(rangeOf255);
