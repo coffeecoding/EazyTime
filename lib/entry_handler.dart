@@ -18,7 +18,7 @@ class EntrySwitchHandler {
   /// Gets Entry Information from the source of truth, the database, updates
   /// the entries list with that information. That is, updating and committing
   /// open entries from previous days and updating end time of last entry today.
-  static Future<String> updateLocalEntries(List<ActivityEntry> entries) async {
+  static Future<String> updateEntries(List<ActivityEntry> entries) async {
     DateTime today = DateTime.now();
     TimeOfDay now = TimeOfDay(hour: today.hour, minute: today.minute);
     today = DateUtils.dateOnly(today);
@@ -104,7 +104,7 @@ class EntrySwitchHandler {
     debugLog += ' startTime = ${startTime.display()}\n';
     debugLog += ' now = ${now.display()}\n';
     debugLog += ' day = ${day.toSimpleString()}\n';
-    debugLog += await updateLocalEntries(entries);
+    debugLog += await updateEntries(entries);
 
     if (day.equalsDateOf(today) && startTime.isAfter(now))
       throw 'Start time cannot be in the future!';

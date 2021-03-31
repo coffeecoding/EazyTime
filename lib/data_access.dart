@@ -82,8 +82,10 @@ class DBClient {
   }
 
   Future<void> deleteActivity(Activity activity) async {
-    activity.isActive = 0;
-    await updateActivity(activity);
+    final Database db = await database;
+    
+    await db.delete('activities', where: 'activityId = ?',
+      whereArgs: [activity.id]);
   }
 
   Future<void> deleteActivityByName(String name) async {

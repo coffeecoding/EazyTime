@@ -129,9 +129,18 @@ class _ActivityManagerState extends State<ActivityManager> {
 
   void _handleDismissActivity(DismissDirection dir, int i) async {
     if (dir == DismissDirection.startToEnd) {
+      // delete item / set inactive
+      List<Activity> usedActivities
+        = await DBClient.instance.getDistinctUsedActivities();
       Activity activityToDel = activities.elementAt(i);
-      await DBClient.instance.deleteActivity(activityToDel);
-      //activities.removeAt(i);
+      if (usedActivities.contains(activityToDel)) {
+        // set inactive
+        activityToDel.isActive = 0;
+        await DBClient.instance.updateActivity(activityToDel);
+      }
+      else {
+        await DBClient.instance.deleteActivity(activityToDel);
+      }
       activities = await DBClient.instance.getActiveActivities();
       setState(() { });
     } else if (dir == DismissDirection.endToStart) {
@@ -140,6 +149,17 @@ class _ActivityManagerState extends State<ActivityManager> {
       _textController.text = cachedActivity!.name;
       _textFocusNode.requestFocus();
     }
+  }
+
+  Future<int> getNextVacantColor() async {
+    List<Activity> acts = await DBClient.instance.getDistinctUsedActivities();
+    List<Color> occupiedColors = acts.map((e) => Color(e.color)).toList();
+    List<Color> vacantColors = ColorSpec.colorCircle.where(
+            (color) => !occupiedColors.contains(color)).toList();
+    if (vacantColors.isNotEmpty) {
+      return vacantColors[0].value;
+    }
+    return ColorSpec.randomColor().value;
   }
 
   void _handleAdd(String text) async {
@@ -152,8 +172,7 @@ class _ActivityManagerState extends State<ActivityManager> {
 
     // First check if activity with this name exists in the list
     bool existsActive = cachedActivity != null;
-    int count = await DBClient.instance.getActiveActivityCount();
-    int nextColor = ColorSpec.colorCircle[count % ColorSpec.colorCircle.length].value;
+    int nextColor = await getNextVacantColor();
 
     // If it exists and isActive == 0, set isActive to 1 and update its color
     if (existsActive) {

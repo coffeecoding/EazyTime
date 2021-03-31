@@ -119,8 +119,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       _activities.sort((a, b) => a.name.compareTo(b.name));
     }
     if (updateEntries) {
-      _entries = await DBClient.instance.getEntriesByDate(DateTime.now());
-      lastSwitchDebugLog += await EntrySwitchHandler.updateLocalEntries(_entries);
+      lastSwitchDebugLog += await EntrySwitchHandler.updateEntries(_entries);
     }
     if (_entries.isNotEmpty) {
       _hour = _entries.last.end.hour;
@@ -353,6 +352,37 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             content: SingleChildScrollView(
                 child:
                     Text(text, style: Theme.of(context).textTheme.headline1)),
+            actions: [
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Oh okay',
+                      style: Theme.of(context).textTheme.caption))
+            ],
+          );
+        });
+  }
+
+  void showInfoColored() {
+    Color rndColor = ColorSpec.randomColor();
+    String colorVal = rndColor.value.toRadixString(16);
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Info'),
+            content: SingleChildScrollView(
+                child:
+                    Container(
+                      width: 200,
+                      height: 200,
+                      color: rndColor,
+                      child: Center(
+                        child: Text(colorVal,
+                            style: NormalTextStyleBold(Colors.white.withOpacity(0.8))),
+                      )
+                    )),
             actions: [
               ElevatedButton(
                   onPressed: () {
@@ -609,6 +639,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                       setState(() {});
                     },
                   child: Text('Now', style: Theme.of(context).textTheme.caption),
+                ),
+                TextButton(
+                  onPressed: () {
+                    showInfoColored();
+                  },
+                  child: Text('Color',
+                      style: Theme.of(context).textTheme.caption),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10.0),
