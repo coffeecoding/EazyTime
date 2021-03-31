@@ -83,10 +83,11 @@ class EntrySwitchHandler {
     });
 
     debugLog += ' Retrieving all entries for today...\n';
-    entries = await DBClient.instance.getEntriesByDate(today);
+    var _entries = await DBClient.instance.getEntriesByDate(today);
+    entries.addAll(_entries);
     debugLog += ' Found ${entries.length} entries:\n';
     entries.forEach((e) { debugLog += '  ${e.toString()}\n'; });
-    debugLog += '** FINISHED UPDATING ENTRIES ${today.toSimpleString()}-${now.display()} **\n';
+    debugLog += '** FINISHED ${today.toSimpleString()}-${now.display()} **\n';
     return debugLog;
   }
 

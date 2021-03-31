@@ -131,16 +131,15 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    updateData(true, true);
-    if (_entries.isNotEmpty) {
-      _hour = _entries.last.start.hour;
-      _minute = _entries.last.start.minute;
-      setState(() {});
-    }
+    updateData(false, true);
 
     // Periodically set State
     _everyMinute = Timer.periodic(Duration(minutes: 4), (Timer t) async {
       updateData(true);
+      if (_entries.isNotEmpty) {
+        _hour = _entries.last.start.hour;
+        _minute = _entries.last.start.minute;
+      }
       setState(() {});
     });
   }
