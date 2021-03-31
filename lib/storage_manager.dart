@@ -1,7 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum SMKey {
-  twelveHourClock, showStartTimes, showHoursInStats
+  twelveHourClock, showStartTimes, showHoursInStats, showAbsolutePortions
 }
 
 class StorageManager {

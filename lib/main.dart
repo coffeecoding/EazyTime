@@ -816,7 +816,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
 
-  late bool _showStartTime = false;
+  bool _showStartTime = false;
 
   @override
   void initState() {
@@ -860,10 +860,25 @@ class HistoryPage extends StatefulWidget {
 
 class _HistoryPageState extends State<HistoryPage> {
 
-  bool _showAbsolutePortions = false;
+  bool? _showAbsolutePortions = false;
   ScrollController _histChartScroller =
     ScrollController(keepScrollOffset: true);
   int historyChartBarCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    loadSettings();
+  }
+
+  void loadSettings() async {
+    _showAbsolutePortions =
+      await StorageManager.readData(SMKey.showAbsolutePortions.toString());
+    if (_showAbsolutePortions == null)
+      _showAbsolutePortions = true;
+    setState(() {
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -873,21 +888,20 @@ class _HistoryPageState extends State<HistoryPage> {
         Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Flexible(
             flex: 2,
-            child: CheckboxListTile(
-              title: Text('Show absolute portions',
-                  style: Theme.of(context).textTheme.headline1),
-              value: _showAbsolutePortions,
-              activeColor: Theme.of(context).accentColor,
-              checkColor: Colors.white,
-              controlAffinity: ListTileControlAffinity.leading,
-              onChanged: (bool? newValue) {
-                if (newValue == null) {
-                  return;
-                }
-                _showAbsolutePortions = newValue;
-                setState(() {});
-              },
-            )
+
+            child: SwitchListTile(
+                controlAffinity: ListTileControlAffinity.trailing,
+                title: Text('Show absolute portions', style:
+                Theme.of(context).textTheme.bodyText2),
+                value: _showAbsolutePortions!,
+                activeColor: Theme.of(context).accentColor,
+                onChanged: (newVal) {
+                  _showAbsolutePortions = newVal;
+                  StorageManager.saveData(SMKey.showAbsolutePortions.toString(),
+                      newVal);
+                  setState(() {
+                  });
+                }),
           ),
           Flexible(
             flex: 9,
@@ -897,7 +911,7 @@ class _HistoryPageState extends State<HistoryPage> {
               child: SizedBox(
                 width: historyChartBarCount * 100,
                 child: FutureBuilder<Widget>(
-                    future: _showAbsolutePortions
+                    future: _showAbsolutePortions == true
                       ? buildHistoryChartAbsolute(context)
                       : buildHistoryChart(context),
                     builder:
