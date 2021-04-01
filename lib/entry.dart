@@ -49,6 +49,18 @@ class ActivityEntry extends IActivityProperties {
   }
 }
 
+Map<String, ActivityPortion> getPortionsByName(List<ActivityEntry> entries) {
+  Map<String, ActivityPortion> _portionByName = {};
+  for (ActivityEntry _entry in entries) {
+    if (_portionByName.containsKey(_entry.name))
+      _portionByName[_entry.name]!.portion += (_entry.fractionOfDay() * 24);
+    else
+      _portionByName[_entry.name] = ActivityPortion(
+          _entry.activity, _entry.fractionOfDay() * 24, _entry.date);
+  }
+  return _portionByName;
+}
+
 /// Deprecated. This one only manipulates the local entries. The implementation
 /// entry_handler.dart actually does the data handling with the database.
 class EntryHandler {
