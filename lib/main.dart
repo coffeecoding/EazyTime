@@ -812,6 +812,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
     Map<DateTime, List<ActivityEntry>> entriesByDate =
     entries.groupBy<DateTime>((e) => e.date);
 
+    // compute total amount of days, in order to compute average / day later
+    int totalDays = entriesByDate.keys.length;
+
     // convert list of entries to list of portions
     Map<DateTime, List<ActivityPortion>> absolutePortionsByDate = {};
     entriesByDate.entries.forEach((e) {
@@ -833,10 +836,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
     // Foreach activity, reduce List<ActivityPortion> to their average
     dailyHoursByActivity = dailyPortionsByActivity.map(
             (key, portions) {
-          int count = portions.length;
           double totalHours = portions.fold(0.0,
                   (prevVal, p) => prevVal + p.portion);
-          return MapEntry(key, totalHours / count);
+          return MapEntry(key, totalHours / totalDays);
         });
 
     setState(() {
@@ -853,11 +855,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
     // group entries by week nr (next 7 days = next 1 week)
     Map<int, List<ActivityEntry>> entriesByWeekNr = {};
     int idx = 0;
-    int lastFullWeekIdx = entriesByDate.keys.length ~/ 7;
+    int totalWeeks = entriesByDate.keys.length ~/ 7;
     for (var keyValPair in entriesByDate.entries) {
       int weekNr = idx ~/ 7;
       // Partial weeks should not influence the statistics
-      if (weekNr >= lastFullWeekIdx)
+      if (weekNr >= totalWeeks)
         break;
       entriesByWeekNr.putIfAbsent(weekNr, () => []);
       entriesByWeekNr[weekNr]!.addAll(keyValPair.value);
@@ -885,10 +887,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
     // Foreach activity, reduce List<ActivityPortion> to their average
     weeklyHoursByActivity = weeklyPortionsByActivity.map(
             (key, portions) {
-          int count = portions.length;
           double totalHours = portions.fold(0.0,
                   (prevVal, p) => prevVal + p.portion);
-          return MapEntry(key, totalHours / count);
+          return MapEntry(key, totalHours / totalWeeks);
         });
 
     setState(() {
