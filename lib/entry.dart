@@ -20,7 +20,10 @@ class ActivityEntry extends IActivityProperties {
       this.end = const TimeOfDay(hour: 0, minute: 0), this.activityId, this.id, this.committed = 0]);
 
   double fractionOfDay() => ((end.hour * 60 + end.minute) -
-      (start.hour * 60 + start.minute)) / 1440;
+      (start.hour * 60 + start.minute)) / 1440; // 1440 is minutes in a day
+
+  double durationInHours() => ((end.hour * 60 + end.minute) -
+      (start.hour * 60 + start.minute)) / 60;
 
   @override
   String toString() => '${this.activity.name} $committed '

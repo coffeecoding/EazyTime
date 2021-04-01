@@ -156,8 +156,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         }
       case DisplayedPage.allTimeStats:
         {
-          _title = 'All Time Statistics';
-          _body = buildAllTimeStatsPage(context);
+          _title = 'Statistics';
+          _body = StatisticsPage();
           break;
         }
       case DisplayedPage.help:
@@ -266,7 +266,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                       },
                       title: Container(
                           alignment: Alignment.centerLeft,
-                          child: Text('All Time Stats',
+                          child: Text('Statistics',
                               style: currentPage == DisplayedPage.allTimeStats
                                   ? Theme.of(context).textTheme.headline5
                                   : Theme.of(context).textTheme.bodyText2))),
@@ -404,41 +404,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         .toList();
   }
 
-  Future<Widget> buildAllTimeChart(BuildContext context) async {
-    List<ActivityEntry> entries = await DBClient.instance.getAllEntries();
-
-    if (entries.isEmpty)
-      return Text('No data found.', style: Theme.of(context).textTheme.headline2);
-
-    Map<String, ActivityPortion> portions = getPortionsByName(entries);
-
-    double totalHours = 0.0;
-    portions.forEach((key, value) {
-      totalHours += value.portion;
-    });
-
-    List<ActivityPortion> _data = [];
-
-    for (var entry in portions.entries) {
-      double percentage = entry.value.portion / totalHours * 100;
-      _data.add(ActivityPortion(entry.value.activity, percentage));
-    }
-
-    var _series = [
-      charts.Series<ActivityPortion, int>(
-        id: 'TotalActivity',
-        domainFn: (ActivityPortion act, _) => act.activity.id,
-        measureFn: (ActivityPortion act, _) => act.portion,
-        data: _data,
-        colorFn: (ActivityPortion act, _) =>
-            charts.ColorUtil.fromDartColor(Color(act.activity.color)),
-        labelAccessorFn: (ActivityPortion act, _) =>
-            '${act.activity.name} ${act.portion.toStringAsFixed(1)} %',
-      )
-    ];
-
-    return SimplePieChart(_series, animate: true);
-  }
 
   Future<Widget> buildEntryChart(BuildContext context) async {
     if (_entries.isEmpty)
@@ -725,23 +690,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     );
   }
 
-  Widget buildAllTimeStatsPage(BuildContext context) {
-    return Container(
-      height: 800,
-      alignment: Alignment.center,
-      child: FutureBuilder<Widget>(
-          future: buildAllTimeChart(context),
-          builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
-            if (snapshot.hasData) {
-              return snapshot.data!;
-            } else {
-              return Text('Retrieving data ...',
-                  style: Theme.of(context).textTheme.headline2);
-            }
-          }),
-    );
-  }
-
   Widget buildHelpPage(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -760,6 +708,168 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   }
 }
 
+class StatisticsPage extends StatefulWidget {
+  @override
+  _StatisticsPageState createState() => _StatisticsPageState();
+}
+
+class _StatisticsPageState extends State<StatisticsPage> {
+
+  Map<String, double> weeklyHoursByActivity = {};
+  
+  @override
+  void initState() {
+    super.initState();
+    loadWeeklyStatistics();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        appBar: AppBar(
+            title: TabBar(
+              tabs: [
+                Tab(text: 'All Time'),
+                Tab(text: 'Weekly'),
+                Tab(text: 'Daily'),
+              ],
+            )
+        ),
+        body: TabBarView(
+          children: [
+            Container(
+              height: 800,
+              alignment: Alignment.center,
+              child: FutureBuilder<Widget>(
+                  future: buildAllTimeChart(context),
+                  builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+                    if (snapshot.hasData) {
+                      return snapshot.data!;
+                    } else {
+                      return Text('Retrieving data ...',
+                          style: Theme.of(context).textTheme.headline2);
+                    }
+                  }),
+            ),
+            DataTable(
+                columns: [
+                  DataColumn(label: Text('Activity',
+                      style: Theme.of(context).textTheme.headline5)),
+                  DataColumn(label: Text('Hours/Week',
+                      style: Theme.of(context).textTheme.headline5)),
+                ],
+                rows: buildWeeklyDataRows(context),
+            ),
+            Center(child: Text('Hi')),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<DataRow> buildWeeklyDataRows(BuildContext context) {
+    List<DataRow> rows = [];
+    weeklyHoursByActivity.forEach((key, value) {
+      DataCell activityCell = DataCell(Text(key,
+          style: Theme.of(context).textTheme.bodyText2));
+      DataCell hoursCell = DataCell(Text(value.toStringAsFixed(2),
+          style: Theme.of(context).textTheme.bodyText2));
+      DataRow row = DataRow(cells: [activityCell, hoursCell]);
+      rows.add(row);
+    });
+    return rows;
+  }
+  
+  Future<void> loadWeeklyStatistics() async {
+    List<ActivityEntry> entries = await DBClient.instance.getAllEntries();
+
+    // group entries by date
+    Map<DateTime, List<ActivityEntry>> entriesByDate =
+    entries.groupBy<DateTime>((e) => e.date);
+
+    // group entries by week nr (next 7 days = next 1 week)
+    Map<int, List<ActivityEntry>> entriesByWeekNr = {};
+    int idx = 0;
+    int lastFullWeekIdx = entriesByDate.keys.length ~/ 7;
+    for (var keyValPair in entriesByDate.entries) {
+      int weekNr = idx ~/ 7;
+      // Partial weeks should not influence the statistics
+      if (weekNr >= lastFullWeekIdx)
+        break;
+      entriesByWeekNr.putIfAbsent(weekNr, () => []);
+      entriesByWeekNr[weekNr]!.addAll(keyValPair.value);
+      idx++;
+    }
+
+    // convert list of entries to list of absolute portions for each week
+    Map<int, List<ActivityPortion>> absolutePortionsByWeek = {};
+    entriesByWeekNr.entries.forEach((e) {
+      Map<String, ActivityPortion> portionByName = getPortionsByName(e.value);
+      List<ActivityPortion> portions = portionByName.values.toList();
+      absolutePortionsByWeek.putIfAbsent(e.key, () => portions);
+    });
+
+    // map absolutePortionsByWeek to Map<Activity, List<ActivityPortion>>
+    // CAUTION: n^2 runtime complexity incoming !!!
+    Map<String, List<ActivityPortion>> weeklyPortionsByActivity = {};
+    absolutePortionsByWeek.forEach((key, value) {
+      value.forEach((portion) {
+        weeklyPortionsByActivity.putIfAbsent((portion.activity.name), () => []);
+        weeklyPortionsByActivity[portion.name]!.add(portion);
+      });
+    });
+
+    // Foreach activity, reduce List<ActivityPortion> to their average
+    weeklyHoursByActivity = weeklyPortionsByActivity.map(
+            (key, portions) {
+          int count = portions.length;
+          double totalHours = portions.fold(0.0,
+                  (prevVal, p) => prevVal + p.portion);
+          return MapEntry(key, totalHours / count);
+        });
+
+    setState(() {
+    });
+  }
+
+  Future<Widget> buildAllTimeChart(BuildContext context) async {
+    List<ActivityEntry> entries = await DBClient.instance.getAllEntries();
+
+    if (entries.isEmpty)
+      return Text('No data found.', style: Theme.of(context).textTheme.headline2);
+
+    Map<String, ActivityPortion> portions = getPortionsByName(entries);
+
+    double totalHours = 0.0;
+    portions.forEach((key, value) {
+      totalHours += value.portion;
+    });
+
+    List<ActivityPortion> _data = [];
+
+    for (var entry in portions.entries) {
+      double percentage = entry.value.portion / totalHours * 100;
+      _data.add(ActivityPortion(entry.value.activity, percentage));
+    }
+
+    var _series = [
+      charts.Series<ActivityPortion, int>(
+        id: 'TotalActivity',
+        domainFn: (ActivityPortion act, _) => act.activity.id,
+        measureFn: (ActivityPortion act, _) => act.portion,
+        data: _data,
+        colorFn: (ActivityPortion act, _) =>
+            charts.ColorUtil.fromDartColor(Color(act.activity.color)),
+        labelAccessorFn: (ActivityPortion act, _) =>
+        '${act.activity.name} ${act.portion.toStringAsFixed(1)} %',
+      )
+    ];
+
+    return SimplePieChart(_series, animate: true);
+  }
+}
 
 /// Parameter text is not necessary if we only want to display the name of
 /// the activity. However, for some legends we may want to display additional
