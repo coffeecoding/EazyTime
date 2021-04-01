@@ -716,11 +716,13 @@ class StatisticsPage extends StatefulWidget {
 class _StatisticsPageState extends State<StatisticsPage> {
 
   Map<String, double> weeklyHoursByActivity = {};
-  
+  Map<String, double> dailyHoursByActivity = {};
+
   @override
   void initState() {
     super.initState();
     loadWeeklyStatistics();
+    loadDailyStatistics();
   }
 
   @override
@@ -757,12 +759,20 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 columns: [
                   DataColumn(label: Text('Activity',
                       style: Theme.of(context).textTheme.headline5)),
-                  DataColumn(label: Text('Hours/Week',
+                  DataColumn(label: Text('Average Hours/Week',
                       style: Theme.of(context).textTheme.headline5)),
                 ],
                 rows: buildWeeklyDataRows(context),
             ),
-            Center(child: Text('Hi')),
+            DataTable(
+              columns: [
+                DataColumn(label: Text('Activity',
+                    style: Theme.of(context).textTheme.headline5)),
+                DataColumn(label: Text('Average Hours/Day',
+                    style: Theme.of(context).textTheme.headline5)),
+              ],
+              rows: buildDailyDataRows(context),
+            ),
           ],
         ),
       ),
@@ -780,6 +790,57 @@ class _StatisticsPageState extends State<StatisticsPage> {
       rows.add(row);
     });
     return rows;
+  }
+
+  List<DataRow> buildDailyDataRows(BuildContext context) {
+    List<DataRow> rows = [];
+    dailyHoursByActivity.forEach((key, value) {
+      DataCell activityCell = DataCell(Text(key,
+          style: Theme.of(context).textTheme.bodyText2));
+      DataCell hoursCell = DataCell(Text(value.toStringAsFixed(2),
+          style: Theme.of(context).textTheme.bodyText2));
+      DataRow row = DataRow(cells: [activityCell, hoursCell]);
+      rows.add(row);
+    });
+    return rows;
+  }
+
+  Future<void> loadDailyStatistics() async {
+    List<ActivityEntry> entries = await DBClient.instance.getAllEntries();
+
+    // group entries by date
+    Map<DateTime, List<ActivityEntry>> entriesByDate =
+    entries.groupBy<DateTime>((e) => e.date);
+
+    // convert list of entries to list of portions
+    Map<DateTime, List<ActivityPortion>> absolutePortionsByDate = {};
+    entriesByDate.entries.forEach((e) {
+      Map<String, ActivityPortion> portionByName = getPortionsByName(e.value);
+      List<ActivityPortion> portions = portionByName.values.toList();
+      absolutePortionsByDate.putIfAbsent(e.key, () => portions);
+    });
+
+    // map absolutePortionsByDate to Map<Activity, List<ActivityPortion>>
+    // CAUTION: n^2 runtime complexity incoming !!!
+    Map<String, List<ActivityPortion>> dailyPortionsByActivity = {};
+    absolutePortionsByDate.forEach((key, value) {
+      value.forEach((portion) {
+        dailyPortionsByActivity.putIfAbsent((portion.activity.name), () => []);
+        dailyPortionsByActivity[portion.name]!.add(portion);
+      });
+    });
+
+    // Foreach activity, reduce List<ActivityPortion> to their average
+    dailyHoursByActivity = dailyPortionsByActivity.map(
+            (key, portions) {
+          int count = portions.length;
+          double totalHours = portions.fold(0.0,
+                  (prevVal, p) => prevVal + p.portion);
+          return MapEntry(key, totalHours / count);
+        });
+
+    setState(() {
+    });
   }
   
   Future<void> loadWeeklyStatistics() async {
