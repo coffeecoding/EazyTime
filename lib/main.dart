@@ -717,12 +717,14 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   Map<String, double> weeklyHoursByActivity = {};
   Map<String, double> dailyHoursByActivity = {};
+  List<ActivityPortion> totalPortions = [];
 
   @override
   void initState() {
     super.initState();
     loadWeeklyStatistics();
     loadDailyStatistics();
+    loadTotalPortions();
   }
 
   @override
@@ -741,19 +743,40 @@ class _StatisticsPageState extends State<StatisticsPage> {
         ),
         body: TabBarView(
           children: [
-            Container(
-              height: 800,
-              alignment: Alignment.center,
-              child: FutureBuilder<Widget>(
-                  future: buildAllTimeChart(context),
-                  builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
-                    if (snapshot.hasData) {
-                      return snapshot.data!;
-                    } else {
-                      return Text('Retrieving data ...',
-                          style: Theme.of(context).textTheme.headline2);
-                    }
-                  }),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  flex: 1,
+                  child: Container(
+                    child: FutureBuilder<Widget>(
+                        future: buildAllTimeChart(context),
+                        builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+                          if (snapshot.hasData) {
+                            return snapshot.data!;
+                          } else {
+                            return Text('Retrieving data ...',
+                                style: Theme.of(context).textTheme.headline2);
+                          }
+                        }),
+                  ),
+                ),
+                Flexible(
+                  flex: 2,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: DataTable(
+                      columns: [
+                        DataColumn(label: Text('Activity',
+                            style: Theme.of(context).textTheme.headline5)),
+                        DataColumn(label: Text('Percentage',
+                            style: Theme.of(context).textTheme.headline5)),
+                      ],
+                      rows: buildTotalDataRows(context),
+                    ),
+                  ),
+                ),
+              ],
             ),
             DataTable(
                 columns: [
@@ -777,6 +800,20 @@ class _StatisticsPageState extends State<StatisticsPage> {
         ),
       ),
     );
+  }
+
+  List<DataRow> buildTotalDataRows(BuildContext context) {
+    List<DataRow> rows = [];
+    totalPortions.forEach((portion) {
+      DataCell activityCell = DataCell(Text(portion.activity.name,
+          style: Theme.of(context).textTheme.bodyText2));
+      DataCell hoursCell = DataCell(Text(portion.portion.toStringAsFixed(2) +
+          ' %',
+          style: Theme.of(context).textTheme.bodyText2));
+      DataRow row = DataRow(cells: [activityCell, hoursCell]);
+      rows.add(row);
+    });
+    return rows;
   }
 
   List<DataRow> buildWeeklyDataRows(BuildContext context) {
@@ -896,12 +933,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
     });
   }
 
-  Future<Widget> buildAllTimeChart(BuildContext context) async {
+  Future<void> loadTotalPortions() async {
     List<ActivityEntry> entries = await DBClient.instance.getAllEntries();
-
-    if (entries.isEmpty)
-      return Text('No data found.', style: Theme.of(context).textTheme.headline2);
-
     Map<String, ActivityPortion> portions = getPortionsByName(entries);
 
     double totalHours = 0.0;
@@ -909,23 +942,30 @@ class _StatisticsPageState extends State<StatisticsPage> {
       totalHours += value.portion;
     });
 
-    List<ActivityPortion> _data = [];
+    totalPortions.clear();
 
     for (var entry in portions.entries) {
       double percentage = entry.value.portion / totalHours * 100;
-      _data.add(ActivityPortion(entry.value.activity, percentage));
+      totalPortions.add(ActivityPortion(entry.value.activity, percentage));
     }
+
+    setState(() {});
+  }
+
+  Future<Widget> buildAllTimeChart(BuildContext context) async {
+    if (totalPortions.isEmpty)
+      return Text('No entries found', style: Theme.of(context).textTheme.headline2);
 
     var _series = [
       charts.Series<ActivityPortion, int>(
         id: 'TotalActivity',
         domainFn: (ActivityPortion act, _) => act.activity.id,
         measureFn: (ActivityPortion act, _) => act.portion,
-        data: _data,
+        data: totalPortions,
         colorFn: (ActivityPortion act, _) =>
             charts.ColorUtil.fromDartColor(Color(act.activity.color)),
         labelAccessorFn: (ActivityPortion act, _) =>
-        '${act.activity.name} ${act.portion.toStringAsFixed(1)} %',
+        '${act.activity.name}',
       )
     ];
 
