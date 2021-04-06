@@ -163,7 +163,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   Divider(height: 1.0),
                   ListTile(
                       tileColor: Theme.of(context).accentColor.withOpacity(
-                          currentPage == DisplayedPage.home ? 0.3 : 0),
+                          currentPage == DisplayedPage.home ? 0.7 : 0),
                       leading: Icon(currentPage == DisplayedPage.home
                           ? Icons.pie_chart
                           : Icons.pie_chart_outline_sharp),
@@ -181,7 +181,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   Divider(height: 1.0),
                   ListTile(
                       tileColor: Theme.of(context).accentColor.withOpacity(
-                          currentPage == DisplayedPage.history ? 0.3 : 0),
+                          currentPage == DisplayedPage.history ? 0.7 : 0),
                       leading: Icon(currentPage == DisplayedPage.history
                           ? Icons.bar_chart
                           : Icons.bar_chart_outlined),
@@ -199,7 +199,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   Divider(height: 1.0),
                   ListTile(
                       tileColor: Theme.of(context).accentColor.withOpacity(
-                          currentPage == DisplayedPage.allTimeStats ? 0.3 : 0),
+                          currentPage == DisplayedPage.allTimeStats ? 0.7 : 0),
                       leading: Icon(currentPage == DisplayedPage.allTimeStats
                           ? Icons.analytics
                           : Icons.analytics_outlined),
@@ -217,7 +217,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   Divider(height: 1.0),
                   ListTile(
                       tileColor: Theme.of(context).accentColor.withOpacity(
-                          currentPage == DisplayedPage.preferences ? 0.3 : 0),
+                          currentPage == DisplayedPage.preferences ? 0.7 : 0),
                       leading: Icon(currentPage == DisplayedPage.preferences
                           ? Icons.settings
                           : Icons.settings_outlined),
@@ -235,7 +235,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   Divider(height: 1.0),
                   ListTile(
                       tileColor: Theme.of(context).accentColor.withOpacity(
-                        currentPage == DisplayedPage.help ? 0.3 : 0),
+                        currentPage == DisplayedPage.help ? 0.7 : 0),
                       leading: Icon(currentPage == DisplayedPage.help
                           ? Icons.help
                           : Icons.help_outline),

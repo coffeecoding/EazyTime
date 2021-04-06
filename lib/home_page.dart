@@ -62,6 +62,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver, Ticker
   void initState() {
     watchPointerController = AnimationController(
         duration: const Duration(milliseconds: 500),
+        
         vsync: this);
     super.initState();
     updateData(false, true);
@@ -103,13 +104,31 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver, Ticker
                     }),
               ),
             ),
-            Image.asset('assets/watch.png',
-            width: 100, height: 100,),
+            Container(
+              child: Image.asset('assets/watch.png',
+              width: 120, height: 120,),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                      blurRadius: 1,
+                      offset: Offset(-1, -1),
+                      color: Colors.white.withOpacity(0.5)
+                  ),
+                  BoxShadow(
+                    blurRadius: 10,
+                    spreadRadius: -2,
+                    offset: Offset(1, 1),
+                    color: Colors.black.withOpacity(0.8)
+                  )
+                ]
+              ),
+            ),
             RotationTransition(
               turns: Tween(begin: 0.0, end: fractionOfDayPassed())
                   .animate(watchPointerController),
               child: Image.asset('assets/watch_pointer.png',
-                width: 100, height: 100, ),
+                width: 120, height: 120, ),
             ),
           ]),
         ),
