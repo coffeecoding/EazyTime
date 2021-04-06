@@ -1,3 +1,4 @@
+import 'package:flutter/animation.dart';
 import 'package:flutter/material.dart';
 import 'activity_manager.dart';
 import 'data_access.dart';
@@ -10,13 +11,14 @@ import 'storage_manager.dart';
 import 'styles.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'time_extensions.dart';
+import 'dart:math';
 
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver, TickerProviderStateMixin {
   _HomePageState() {
     updateData(true, true);
   }
@@ -28,9 +30,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   List<Activity> _activities = [];
   List<ActivityEntry> _entries = [];
   String lastSwitchDebugLog = "";
+  
+  late AnimationController watchPointerController;
 
   // ignore: unused_field
   Timer? _everyMinute;
+
+  double fractionOfDayPassed() {
+    TimeOfDay now = TimeOfDay.now();
+    return (now.hour * 60 + now.minute) / 1440; // 1440 is minutes in a day
+  }
 
   Future<void> updateData(bool updateEntries,
       [bool updateActivities = false]) async {
@@ -45,11 +54,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       _hour = _entries.last.end.hour;
       _minute = _entries.last.end.minute;
     }
+    watchPointerController.forward();
     setState(() {});
   }
 
   @override
   void initState() {
+    watchPointerController = AnimationController(
+        duration: const Duration(milliseconds: 500),
+        vsync: this);
     super.initState();
     updateData(false, true);
 
@@ -69,24 +82,36 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return Column(
       children: [
         Flexible(
-          child: Container(
-            color: Theme.of(context).backgroundColor,
+          child: Stack(
             alignment: Alignment.center,
-            child: Padding(
-              padding: EdgeInsets.all(32.0),
-              child: FutureBuilder<Widget>(
-                  future: buildEntryChart(context),
-                  builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
-                    if (snapshot.hasData) {
-                      return snapshot.data!;
-                    } else {
-                      return Text('Retrieving data ...',
-                          style: Theme.of(context).textTheme.headline2);
-                    }
-                  }
+              children: [
+            Container(
+              color: Theme.of(context).backgroundColor,
+              alignment: Alignment.center,
+              child: Padding(
+                padding: EdgeInsets.all(32.0),
+                child: FutureBuilder<Widget>(
+                    future: buildEntryChart(context),
+                    builder:
+                        (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+                      if (snapshot.hasData) {
+                        return snapshot.data!;
+                      } else {
+                        return Text('Retrieving data ...',
+                            style: Theme.of(context).textTheme.headline2);
+                      }
+                    }),
               ),
             ),
-          ),
+            Image.asset('assets/watch.png',
+            width: 100, height: 100,),
+            RotationTransition(
+              turns: Tween(begin: 0.0, end: fractionOfDayPassed())
+                  .animate(watchPointerController),
+              child: Image.asset('assets/watch_pointer.png',
+                width: 100, height: 100, ),
+            ),
+          ]),
         ),
         Flexible(
           child: Column(
@@ -104,7 +129,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     _minute = time.minute;
                     setState(() {});
                   },
-                  child: Text('Now', style: Theme.of(context).textTheme.caption),
+                  child:
+                      Text('Now', style: Theme.of(context).textTheme.caption),
                 ),
                 /*
                 TextButton(
@@ -119,15 +145,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   child: ElevatedButton(
                       onPressed: () async {
                         TimeOfDay _selTime =
-                        TimeOfDay(hour: _hour, minute: _minute);
+                            TimeOfDay(hour: _hour, minute: _minute);
                         Activity _selectedActivity =
-                        _activities[_selectedActivityIndex];
+                            _activities[_selectedActivityIndex];
 
                         await EntrySwitchHandler.handleSwitch(
-                            _entries,
-                            _selectedActivity,
-                            _selTime,
-                            DateUtils.dateOnly(DateTime.now()))
+                                _entries,
+                                _selectedActivity,
+                                _selTime,
+                                DateUtils.dateOnly(DateTime.now()))
                             .then((val) async {
                           lastSwitchDebugLog += val;
                           await updateData(true, true);
@@ -154,13 +180,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         child: Text('+ Activity',
                             style: Theme.of(context).textTheme.caption),
                         onPressed: () => {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      ActivityManager(_activities)))
-                              .then(onNavigateHere)
-                        }),
+                              Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              ActivityManager(_activities)))
+                                  .then(onNavigateHere)
+                            }),
                     /*
                     TextButton(
                         onPressed: () {
@@ -191,7 +217,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       return Text('No entries found', style: SecondaryTextStyle(Colors.grey));
 
     bool showStartTimes =
-    await StorageManager.readData(SMKey.showStartTimes.toString());
+        await StorageManager.readData(SMKey.showStartTimes.toString());
 
     List<charts.Series<ActivityEntry, int>> chartData = [
       new charts.Series<ActivityEntry, int>(
@@ -202,7 +228,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         colorFn: (ActivityEntry act, _) =>
             charts.ColorUtil.fromDartColor(Color(act.color)),
         labelAccessorFn: (ActivityEntry act, _) =>
-        '${act.name}' + (showStartTimes ? ' (${act.start.display()})' : ''),
+            '${act.name}' + (showStartTimes ? ' (${act.start.display()})' : ''),
       )
     ];
 
@@ -241,14 +267,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       ListWheelScrollView(
         key: UniqueKey(),
         controller:
-        FixedExtentScrollController(initialItem: _selectedActivityIndex),
+            FixedExtentScrollController(initialItem: _selectedActivityIndex),
         // Without this line it doesn't update!!!
         onSelectedItemChanged: (index) => updateSelectedActivity(index),
         overAndUnderCenterOpacity: 0.75,
         diameterRatio: 1.5,
         children: _activities
             .map((e) =>
-            Text(e.name, style: Theme.of(context).textTheme.bodyText1))
+                Text(e.name, style: Theme.of(context).textTheme.bodyText1))
             .toList(),
         itemExtent: 48,
         physics: FixedExtentScrollPhysics(),
@@ -302,10 +328,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     info += Colors.primaries[1].toString() + "\n";
     info += Colors.red.toString() + "\n";
     info += Colors.primaries
-        .singleWhere((c) =>
-    c.toString() ==
-        'MaterialColor(primary value: Color(0xfff44336))')
-        .toString() +
+            .singleWhere((c) =>
+                c.toString() ==
+                'MaterialColor(primary value: Color(0xfff44336))')
+            .toString() +
         "\n";
     info += Colors.red.value.toString() + "\n";
     Color x = new Color(Colors.red.value);
@@ -343,7 +369,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             title: Text('Info'),
             content: SingleChildScrollView(
                 child:
-                Text(text, style: Theme.of(context).textTheme.headline1)),
+                    Text(text, style: Theme.of(context).textTheme.headline1)),
             actions: [
               ElevatedButton(
                   onPressed: () {
@@ -365,16 +391,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           return AlertDialog(
             title: Text('Info'),
             content: SingleChildScrollView(
-                child:
-                Container(
+                child: Container(
                     width: 200,
                     height: 200,
                     color: rndColor,
                     child: Center(
                       child: Text(colorVal,
-                          style: NormalTextStyleBold(Colors.white.withOpacity(0.8))),
-                    )
-                )),
+                          style: NormalTextStyleBold(
+                              Colors.white.withOpacity(0.8))),
+                    ))),
             actions: [
               ElevatedButton(
                   onPressed: () {
@@ -386,5 +411,4 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           );
         });
   }
-
 }
