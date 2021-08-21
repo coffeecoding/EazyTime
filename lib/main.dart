@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_eazytime/help_page.dart';
-import 'package:flutter_eazytime/styles.dart';
-import 'styles.dart';
-import 'home_page.dart';
-import 'statistics_page.dart';
-import 'history_page.dart';
-import 'settings_page.dart';
+import 'file:///C:/Users/Admin/AndroidStudioProjects/flutter_eazytime/lib/stateless_widgets/help_page.dart';
+import 'styles/styles.dart';
+import 'stateful_widgets/home_page.dart';
+import 'stateful_widgets/statistics_page.dart';
+import 'stateful_widgets/history_page.dart';
+import 'stateful_widgets/settings_page.dart';
 
 void main() {
   runApp(EazyTime());
@@ -263,7 +262,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           applicationVersion: '1.0.0',
                           applicationIcon: Icon(Icons.art_track),
                           applicationLegalese: 'Made by YousufCodes 2021\n'
-                            'www.yousufcodes.com'
+                            'www.ys-code.com'
                         );
                       },
                       title: Container(

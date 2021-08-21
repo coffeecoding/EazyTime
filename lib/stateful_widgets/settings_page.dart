@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'storage_manager.dart';
+import '../util/storage_manager.dart';
 
 class SettingsPage extends StatefulWidget {
   @override

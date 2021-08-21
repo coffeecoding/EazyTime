@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_eazytime/activity.dart';
-import 'package:flutter_eazytime/styles.dart';
-import 'data_access.dart';
-import 'styles.dart';
+import '../models/activity.dart';
+import '../styles/styles.dart';
+import '../data/data_access.dart';
+import '../styles/styles.dart';
 
 class ActivityManager extends StatefulWidget {
   ActivityManager(this.activities);

@@ -2,9 +2,9 @@ import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:flutter/widgets.dart';
-import 'datetime_utils.dart';
-import 'activity.dart';
-import 'entry.dart';
+import '../util/datetime_utils.dart';
+import '../models/activity.dart';
+import '../models/entry.dart';
 
 class DBClient {
 

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'data_access.dart';
+import '../data/data_access.dart';
 import 'entry.dart';
-import 'time_extensions.dart';
+import '../util/time_extensions.dart';
 import 'activity.dart';
-import 'datetime_utils.dart';
-import 'extensions.dart';
+import '../util/datetime_utils.dart';
+import '../util/extensions.dart';
 
 class EntrySwitchHandler {
 

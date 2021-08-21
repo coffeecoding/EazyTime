@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'data_access.dart';
-import 'activity.dart';
-import 'entry.dart';
+import '../data/data_access.dart';
+import '../models/activity.dart';
+import '../models/entry.dart';
 import 'dart:async';
 import 'package:charts_flutter/flutter.dart' as charts;
-import 'extensions.dart';
-import 'stacked_bar_chart.dart';
-import 'storage_manager.dart';
-import 'styles.dart';
-import 'datetime_utils.dart';
+import '../util/extensions.dart';
+import '../stateless_widgets/stacked_bar_chart.dart';
+import '../util/storage_manager.dart';
+import '../styles/styles.dart';
+import '../util/datetime_utils.dart';
 
 class HistoryPage extends StatefulWidget {
   @override

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'activity.dart';
-import 'entry.dart';
-import 'styles.dart';
+import '../models/activity.dart';
+import '../models/entry.dart';
+import '../styles/styles.dart';
 
 class SampleData {
 

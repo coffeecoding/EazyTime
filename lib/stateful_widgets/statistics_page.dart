@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'data_access.dart';
-import 'activity.dart';
-import 'entry.dart';
+import '../data/data_access.dart';
+import '../models/activity.dart';
+import '../models/entry.dart';
 import 'dart:async';
 import 'package:charts_flutter/flutter.dart' as charts;
-import 'extensions.dart';
-import 'pie_chart.dart';
+import '../util/extensions.dart';
+import '../stateless_widgets/pie_chart.dart';
 
 class StatisticsPage extends StatefulWidget {
   @override

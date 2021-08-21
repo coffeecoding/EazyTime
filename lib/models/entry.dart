@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'time_extensions.dart';
+import '../util/time_extensions.dart';
 import 'activity.dart';
-import 'datetime_utils.dart';
+import '../util/datetime_utils.dart';
 
 class ActivityEntry extends IActivityProperties {
   TimeOfDay start;

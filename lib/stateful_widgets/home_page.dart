@@ -1,16 +1,16 @@
 import 'package:flutter/animation.dart';
 import 'package:flutter/material.dart';
 import 'activity_manager.dart';
-import 'data_access.dart';
-import 'activity.dart';
-import 'entry.dart';
-import 'entry_handler.dart';
+import '../data/data_access.dart';
+import '../models/activity.dart';
+import '../models/entry.dart';
+import '../models/entry_handler.dart';
 import 'dart:async';
-import 'partial_pie_chart.dart';
-import 'storage_manager.dart';
-import 'styles.dart';
+import '../stateless_widgets/partial_pie_chart.dart';
+import '../util/storage_manager.dart';
+import '../styles/styles.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
-import 'time_extensions.dart';
+import '../util/time_extensions.dart';
 import 'dart:math';
 
 class HomePage extends StatefulWidget {
@@ -62,7 +62,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver, Ticker
   void initState() {
     watchPointerController = AnimationController(
         duration: const Duration(milliseconds: 500),
-        
+
         vsync: this);
     super.initState();
     updateData(false, true);
@@ -206,13 +206,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver, Ticker
                                               ActivityManager(_activities)))
                                   .then(onNavigateHere)
                             }),
-                    /*
                     TextButton(
                         onPressed: () {
                           showDebugInfo(context);
                           showInfo(lastSwitchDebugLog);
                         },
                         child: Text('DBG')),
+                    /*
                     TextButton(
                         onPressed: () async {
                           await DBClient.instance.deleteEntriesByDate(
